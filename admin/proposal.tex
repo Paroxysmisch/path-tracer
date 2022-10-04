@@ -23,21 +23,21 @@
 
     Additionally, this path tracer should be able to realistically model a variety of materials in a physically accurate manner. This will be achieved by computationally modelling light transport. This means that the interaction of light with materials will be governed by a BRDF, i.e. Bidirectional Reflectance Distribution Function, which provides a weighting to a particular pair of incident and reflected light vectors. This BRDF can encapsulate how a particular material interacts with light, helping in simulating properties such as diffuse and specular reflection.
 
-    A cornerstone of the problem involves calculation of the total incoming radiance at a particular point on an object. Similar to many ray-tracing implementations, this path tracing approach is also “backwards”, meaning that a ray is shot from the camera and followed into the scene, instead of shooting a ray from a light source and hoping it reaches the camera. This leads to a great increase in efficiency, since most of the rays from light sources will not reach the camera. However this also means that simulating certain effects such as caustics becomes much more difficult.
+    A cornerstone of the problem involves calculation of the total incoming radiance at a particular point on an object. Similar to many ray tracing implementations, this path tracing approach is also “backwards”, meaning that a ray is shot from the camera and followed into the scene, instead of shooting a ray from a light source and hoping it reaches the camera. This leads to a great increase in efficiency, since most of the rays from light sources will not reach the camera. However this also means that simulating certain effects such as caustics becomes much more difficult.
 
-    The problem of calculating the total incoming radiance at a particular point is one, which for even moderately complex scenes, is analytically impossible. As a result, we are forced to use a sampling approach, notably Monte Carlo Sampling. Using this approach allows us to get an estimate of the true value which improves with the number of samples. Increasing the number of samples reduces the noise we see in the result, but also increases the computational requirements. To help reduce the number of samples, the Monte Carlo approach is augmented with a technique called Importance Sampling. By guiding the sampling process according to where the BRDF values are high, we can reduce the variance in the estimator and thus achieve convergence faster (with fewer samples). The project also aims to integrate an exisiting denoiser to further reduce these sample requirements.
+    The problem of calculating the total incoming radiance at a particular point is analytically impossible for even moderately complex scenes. As a result, we are forced to use a sampling approach, notably Monte Carlo Sampling. Using this approach allows us to get an estimate of the true value which improves with the number of samples. Increasing the number of samples reduces the noise we see in the result, but also increases the computational requirements. To help reduce the number of samples, the Monte Carlo approach is augmented with a technique called Importance Sampling. By guiding the sampling process according to where the BRDF values are high, we can reduce the variance in the estimator and thus achieve convergence faster (with fewer samples). The project also aims to integrate an exisiting denoiser to further reduce these sample requirements.
 
-    The project also aims to support Constructive Solid Geometry, allowing a user to create complex objects from a set of primitives and union, intersection and difference operations, like in CAD software.
+    Additionally, there should be support for Constructive Solid Geometry, allowing the creation of complex objects from a set of primitives and union, intersection and difference operations, like in CAD software.
 
     Lastly, as extensions, the project can also be further developed to support the rendering of meshes. The path tracer can also be extended to support more advanced features such as caustics, by integrating a bi-directional path tracing approach, where there is an initial forward pass, caching its result, in a technique called photon mapping. This is then followed by a traditional backward pass, as described earlier, where this time we also use the additional information gathered from the forward pass. A custom denoiser can also be developed, instead of using an existing one, if time permits.
 
     \section*{Starting Point}
     The project will make use of some existing libraries. These include a unit testing framework, Catch 2, along with a static analyser, clang-tidy. These will ensure that the code is correct and of a good quality. Finally, CMake will be used to maintain project structure and make compilation with these libraries easier.
 
-    Apart from the use of these libraries, the rest of the project will be done from scratch. No code has been written prior to the start of the project. I do have limited knowledge of CUDA programming from the books “Programming Massively Parallel Processors” and “CUDA by Example” as well as knowledge about ray-tracing from the first year graphics course as well as the book “The Ray Tracer Challenge”.
+    Apart from the use of these libraries, the rest of the project will be done from scratch. No code has been written prior to the start of the project. I do have limited knowledge of CUDA programming from the books “Programming Massively Parallel Processors” and “CUDA by Example” as well as knowledge about ray tracing from the first year graphics course as well as the book “The Ray Tracer Challenge”.
 
     \section*{Success Criterion}
-    The project will be considered a success if it is capable of rendering a small variety of different shapes (such as spheres and planes), using path-tracing and GPU-acceleration. The renderer should be capable of supporting basic lighting and shading, as well as shadows. It should also be able to output the resulting render to a PPM file.
+    The project will be considered a success if it is capable of rendering a small variety of different shapes (such as spheres and planes), using path tracing and GPU acceleration. The renderer should be capable of supporting basic lighting and shading, as well as shadows. It should also be able to output the resulting render to a PPM file.
 
     \section*{Timetable}
     \newtime{Weeks 1-2}{4th - 17th October}{Performing some additional research around path tracing in areas such as BRDF and simulation of transparent materials. Also getting a refresher on CUDA and setting-up the programming environment (integrating the libraries with CMake, working with a unit test framework (Catch2) and a static analyser (clang-tidy).}
@@ -48,19 +48,19 @@
 
     \newtime{Weeks 7-8}{15th - 28th November}{Add support for Constructive Solid Geometry. Also allow the rendering of patterns.}
 
-    \newtime{Weeks 9-12}{29th November - 26th December}{Begin writing of dissertation. 4 week break from programming.}
+    \newtime{Weeks 9-12}{29th November - 26th December}{Begin writing of dissertation, including a detailed description of the project, the PPM format, how intersections are calculated, implementation of the camera, calculation of shadows, Constructive Solid Geometry and patterns. 4 week break from programming.}
 
-    \newtime{Weeks 13-14}{27th December - 9th January}{At this point, we have a ray-tracer. We need to transform this into a path tracer by each intersection spawning multiple new rays. These new rays will be randomly generated and will be weighted using a BRDF. The results can then be added to get the radiance at that point.}
+    \newtime{Weeks 13-14}{27th December - 9th January}{At this point, we have a ray tracer. We need to transform this into a path tracer by each intersection spawning multiple new rays. These new rays will be randomly generated and will be weighted using a BRDF. The results can then be added to get the radiance at that point.}
 
-    \newtime{Weeks 15-16}{10th - 23rd January}{The previous work package is quite large and will likely take more than a fortnight. As a result, this work package is dedicated to finishing off the path tracer conversion as well as adding support for importance sampling \emph{The success criterion should have been met now.}}
+    \newtime{Weeks 15-16}{10th - 23rd January}{The previous work package is quite large and will likely take more than a fortnight. As a result, this work package is dedicated to finishing off the path tracer conversion as well as adding support for importance sampling. Add to the disseration details about this, emphasising how the path tracing differs from the ray tracing. \emph{The success criterion should have been met now.}}
 
-    \newtime{Weeks 17-18}{24th January - 6th February}{At this point, the path tracer is capable of rendering quite lovely looking images. However, support for transparency is still missing and this work package aims to implement this.}
+    \newtime{Weeks 17-18}{24th January - 6th February}{At this point, the path tracer is capable of rendering quite lovely looking images. However, support for transparency is still missing and this work package aims to implement this. Write about how light transport functions with transparency in the renderer in the dissertation.}
 
-    \newtime{Weeks 19-20}{7th - 20th February}{Add support for area lights and thus soft shadows. Also, integrate the denoiser (most likely NVIDIA OptiX).}
+    \newtime{Weeks 19-20}{7th - 20th February}{Add support for area lights and thus soft shadows. Also, integrate the denoiser (most likely NVIDIA OptiX). Add information regarding this to the write-up.}
 
     \newtime{Weeks 20-21}{21st February - 6th March}{Produce some nice high resolution renders, work on evaluation and continue writing the dissertation.}
 
-    \newtime{Weeks 22-23}{7th - 20th March}{Finish writing the dissertation.}
+    \newtime{Weeks 22-25}{7th March - 3rd April}{There should now be time left to implement some of the extensions. We can begin with adding support for meshes. If this is successfully achieved, the next extension should be to write a naïve custom denoiser. If both of these are achieved, another extension could be to implement photon mapping. Finish writing the dissertation.}
 
     \section*{Special resources}
     My project will require the use of my own machine. This is because the project uses CUDA-acceleration, requiring an NVIDIA GPU.
