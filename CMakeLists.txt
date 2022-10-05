@@ -8,6 +8,7 @@ find_package(Catch2 REQUIRED)
 
 set(path_tracer_sources
     main.cu
+    check_cuda_errors.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
