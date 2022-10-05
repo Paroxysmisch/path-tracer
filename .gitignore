@@ -1,3 +1,5 @@
-/admin/*
-!/admin/proposal.tex
-!/admin/proposal.pdf
+/admin/proposal/*
+!/admin/proposal/proposal.tex
+!/admin/proposal/proposal.pdf
+
+/build
