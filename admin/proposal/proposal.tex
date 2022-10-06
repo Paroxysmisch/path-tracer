@@ -40,27 +40,37 @@
     The project will be considered a success if it is capable of rendering a small variety of different shapes (such as spheres and planes), using path tracing and GPU acceleration. The renderer should be capable of supporting basic lighting and shading, as well as shadows. It should also be able to output the resulting render to a PPM file.
 
     \section*{Timetable}
-    \newtime{Weeks 1-2}{4th - 17th October}{Performing some additional research around path tracing in areas such as BRDF and simulation of transparent materials. Also getting a refresher on CUDA and setting up the programming environment (integrating the libraries with CMake, working with a unit test framework (Catch2) and a static analyser (clang-tidy).}
+    \newtime{Weeks 1--2}{4th--17th October}{Performing some additional research around path tracing in areas such as BRDF and simulation of transparent materials. Also getting a refresher on CUDA and setting up the programming environment (integrating the libraries with CMake, working with a unit test framework (Catch2) and a static analyser (clang-tidy).}
 
-    \newtime{Weeks 3-4}{18th - 31st October}{Implement a canvas and support exporting the result in PPM format. Support ray-sphere intersections, basic lighting and shading and be capable of rendering a very basic scene.}
+    \newtime{Weeks 3--4}{18th--31st October}{Implement a canvas and support exporting the result in PPM format. Support ray-sphere intersections, basic lighting and shading and be capable of rendering a very basic scene.}
 
-    \newtime{Weeks 5-6}{1st - 14th November}{Add support for simple shadows (requires implementing a feature to see if the ray from the intersection point to a light is blocked). Allow multiple shapes - will need refactoring of the code to abstract away what a shape is.}
+    \newtime{Weeks 5--6}{1st--14th November}{Add support for simple shadows (requires implementing a feature to see if the ray from the intersection point to a light is blocked). Allow multiple shapes - will need refactoring of the code to abstract away what a shape is.}
 
-    \newtime{Weeks 7-8}{15th - 28th November}{Add support for Constructive Solid Geometry. Also, allow the rendering of patterns.}
+    \newtime{Weeks 7--8}{15th--28th November}{Add support for Constructive Solid Geometry. Also, allow the rendering of patterns.}
 
-    \newtime{Weeks 9-12}{29th November - 26th December}{Begin writing the dissertation, including a detailed description of the project, the PPM format, how intersections are calculated, implementation of the camera, calculation of shadows, Constructive Solid Geometry and patterns. Take a 4-week break from programming.}
+    \newtime{Weeks 9--10}{29th November--12th December}{Begin writing the dissertation, including a detailed description of the project, the PPM format, how intersections are calculated, implementation of the camera, calculation of shadows, Constructive Solid Geometry and patterns. Avoid programming in this period.}
 
-    \newtime{Weeks 13-14}{27th December - 9th January}{At this point, we have a ray tracer. We need to transform this into a path tracer by each intersection spawning multiple new rays. These new rays will be randomly generated and will be weighted using a BRDF. The results can then be added to get the radiance at that point.}
+    \newtime{Weeks 11--12}{13th--26th December}{\emph{2 week break.}}
 
-    \newtime{Weeks 15-16}{10th - 23rd January}{The previous work package is quite large and will likely take more than a fortnight. As a result, this work package is dedicated to finishing off the path tracer conversion as well as adding support for importance sampling. Add to the dissertation details about this, emphasising how the path tracing approach differs from the ray tracing one. \emph{The success criterion should have been met now.}}
+    \newtime{Weeks 13--14}{27th December--9th January}{At this point, we have a ray tracer. We need to transform this into a path tracer by each intersection spawning multiple new rays. These new rays will be randomly generated and will be weighted using a BRDF. The results can then be added to get the radiance at that point.}
 
-    \newtime{Weeks 17-18}{24th January - 6th February}{At this point, the path tracer is capable of rendering quite stunning images. However, support for transparency is still missing and this work package aims to implement this. Write about how light transport functions with transparency in the renderer in the dissertation.}
+    \newtime{Weeks 15--16}{10th--23rd January}{The previous work package is quite large and will likely take more than a fortnight. As a result, this work package is dedicated to finishing off the path tracer conversion as well as adding support for importance sampling. Add to the dissertation details about this, emphasising how the path tracing approach differs from the ray tracing one. \emph{The success criterion should have been met now.}}
 
-    \newtime{Weeks 19-20}{7th - 20th February}{Add support for area lights and thus soft shadows. Also, integrate the denoiser (most likely NVIDIA OptiX). Add information regarding this to the write-up.}
+    \newtime{Weeks 17--18}{24th January--6th February}{At this point, the path tracer is capable of rendering quite stunning images. However, support for transparency is still missing and this work package aims to implement this. Write about how light transport functions with transparency in the renderer in the dissertation.}
 
-    \newtime{Weeks 20-21}{21st February - 6th March}{Produce some nice high-resolution renders, work on evaluation and continue writing the dissertation.}
+    \newtime{Weeks 19--20}{7th--20th February}{Add support for area lights and thus soft shadows. Also, integrate the denoiser (most likely NVIDIA OptiX). Add information regarding this to the write-up.}
 
-    \newtime{Weeks 22-25}{7th March - 3rd April}{There should now be time left to implement some of the extensions. We can begin with adding support for meshes. If this is successfully achieved, the next extension should be to write a naïve custom denoiser. If both of these are achieved, another extension could be to implement photon mapping. Finish writing the dissertation.}
+    \newtime{Weeks 20--21}{21st February--6th March}{Produce some nice high-resolution renders, work on evaluation and continue writing the dissertation.}
+
+    \newtime{Weeks 22--23}{7th--20th March}{There should now be time left to implement some of the extensions. The first one is to support adaptive sampling so that areas, in which the noise is deemed to be low, get sampled less. This should increase the performance of the path tracer.}
+    
+    \newtime{Weeks 24--25}{21st March--3rd April}{Support for meshes in the OBJ format can now be added.}
+
+    \newtime{Weeks 26--27}{4th--17th April}{Write and integrate a naïve custom denoiser.}
+
+    \newtime{Weeks 28--29}{18th April--1st May}{Implement photon mapping.}
+
+    \newtime{Week 30}{2nd--8th May}{Make some final finishing touches to the project.}
 
     \section*{Special resources}
     My project will require the use of my own machine. This is because the project uses CUDA-acceleration, requiring an NVIDIA GPU.
@@ -85,7 +95,7 @@
 
     Additionally, I will be backing-up the code I write to my own remote GitHub repository. Back-ups will be made whenever any substantial code changes are made. The dissertation will be backed-up in the same repository as the code.
 
-    It may also possibly need the use of the university’s HPC cluster for high-resolution renders, since these may take several hours otherwise on my personal laptop. The use of the HPC cluster should be free for me but paid for by the department. If this resource cannot be secured, my PC should be capable of producing these renders. Although the HPC resources would be useful, they are not strictly necessary for the evaluation of the project.
+    It may also possibly need the use of the university’s HPC cluster for high-resolution renders, since these may take several hours otherwise on my personal laptop. The use of the HPC cluster will likely incur a cost that is not too substantial for me to pay for personally. If this resource cannot be secured, my PC should be capable of producing these renders. Although the HPC resources would be useful, they are not strictly necessary for the evaluation of the project.
 
     \section*{Evaluation}
     The evaluation of the project will focus on several things. The first is how the renderer scales with increasing resolutions. This will involve rendering the same set of scenes with increasing resolutions and looking at how this impacts the time taken. Also, we must explore how the renderer scales with increasing scene complexity, particularly the addition of more light sources. This will be evaluated in the same way as the resolution increasing.
@@ -95,7 +105,7 @@
     Lastly, the evaluation will look at how other publicly-available renderers do with the same scene. This also involves comparing with rasterisation techniques. The comparison involves testing how long the render takes as well as the image fidelity.
 
     \section*{Supervisor}
-    Joseph March - agreed to supervise
+    Joseph March \emph{(jgm45)}
 
 
 \end{document}
