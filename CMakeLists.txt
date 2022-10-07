@@ -22,6 +22,7 @@ target_include_directories(path_tracer PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 
 set(test_sources
     main.cu
+    vector.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
