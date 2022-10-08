@@ -4,6 +4,8 @@ project(Path_Tracer LANGUAGES CXX CUDA)
 
 enable_language(CUDA)
 
+set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+
 find_package(Catch2 REQUIRED)
 
 set(path_tracer_sources
@@ -22,13 +24,18 @@ target_include_directories(path_tracer PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 
 set(test_sources
     main.cu
+    float.cu
     vector.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
 
-add_executable(test ${test_sources})
+list(REMOVE_ITEM path_tracer_sources "src/main.cu")
+
+add_executable(test ${test_sources} ${path_tracer_sources})
 
 set_property(TARGET test PROPERTY CXX_STANDARD 17)
+
+target_include_directories(test PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inc")
 
 target_link_libraries(test PUBLIC Catch2::Catch2)

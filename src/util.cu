@@ -1,7 +1,12 @@
 #include "util.cuh"
+#include "constants.h"
 #include <cmath>
 
 namespace pathtracer {
+
+    __host__ __device__ bool f_equal(float a, float b) {
+        return fabs(a - b) < epsilon;
+    }
 
     __host__ __device__ vec3 vec3::operator+(vec3& other) {
         return vec3{x + other.x, y + other.y, z + other.z};

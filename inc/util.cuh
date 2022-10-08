@@ -2,6 +2,8 @@
 
 namespace pathtracer {
 
+    __host__ __device__ bool f_equal(float a, float b);
+
     struct vec3 {
         float x;
         float y;
