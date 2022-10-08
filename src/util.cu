@@ -8,70 +8,70 @@ namespace pathtracer {
         return fabs(a - b) < epsilon;
     }
 
-    __host__ __device__ bool vec3::operator==(vec3& other) {
+    __host__ __device__ bool vec3::operator==(const vec3& other) const {
         return f_equal(x, other.x) && f_equal(y, other.y) && f_equal(z, other.z);
     }
 
-    __host__ __device__ vec3 vec3::operator+(vec3& other) {
+    __host__ __device__ vec3 vec3::operator+(const vec3& other) const {
         return vec3{x + other.x, y + other.y, z + other.z};
     }
 
-    __host__ __device__ vec3& vec3::operator+=(vec3& other) {
+    __host__ __device__ vec3& vec3::operator+=(const vec3& other) {
         x += other.x;
         y += other.y;
         z += other.z;
         return *this;
     }
 
-    __host__ __device__ vec3 vec3::operator-(vec3& other) {
+    __host__ __device__ vec3 vec3::operator-(const vec3& other) const {
         return vec3{x - other.x, y - other.y, z - other.z};
     }
 
-    __host__ __device__ vec3& vec3::operator-=(vec3& other) {
+    __host__ __device__ vec3& vec3::operator-=(const vec3& other) {
         x -= other.x;
         y -= other.y;
         z -= other.z;
         return *this;
     }
 
-    __host__ __device__ vec3 vec3::operator-() {
+    __host__ __device__ vec3 vec3::operator-() const {
         return vec3{-x, -y, -z};
     }
 
-    __host__ __device__ vec3 vec3::operator*(float scalar) {
+    __host__ __device__ vec3 vec3::operator*(const float scalar) const {
         return vec3{x * scalar, y * scalar, z * scalar};
     }
 
-    __host__ __device__ vec3& vec3::operator*=(float scalar) {
+    __host__ __device__ vec3& vec3::operator*=(const float scalar) {
         x *= scalar;
         y *= scalar;
         z *= scalar;
         return *this;
     }
 
-    __host__ __device__ vec3 vec3::operator&(vec3& other) {
+    __host__ __device__ vec3 vec3::operator&(const vec3& other) const {
         return vec3{x * other.x, y * other.y, z * other.z};
     }
 
-    __host__ __device__ vec3& vec3::operator&=(vec3& other) {
+    __host__ __device__ vec3& vec3::operator&=(const vec3& other) {
         x *= other.x;
         y *= other.y;
         z *= other.z;
         return *this;
     }
 
-    __host__ __device__ vec3 vec3::operator/(float scalar) {
+    __host__ __device__ vec3 vec3::operator/(const float scalar) const {
         return vec3{x / scalar, y / scalar, z / scalar};
     }
 
-    __host__ __device__ vec3& vec3::operator/=(float scalar) {
+    __host__ __device__ vec3& vec3::operator/=(const float scalar) {
         x /= scalar;
         y /= scalar;
         z /= scalar;
         return *this;
     }
 
-    __host__ __device__ float vec3::mag() {
+    __host__ __device__ float vec3::mag() const {
         return sqrtf(x*x + y*y + z*z);
     }
 
@@ -81,11 +81,11 @@ namespace pathtracer {
         return *this;
     }
 
-    __host__ __device__ float vec3::operator*(vec3& other) {
+    __host__ __device__ float vec3::operator*(const vec3& other) const {
         return x * other.x + y * other.y + z * other.z;
     }
 
-    __host__ __device__ vec3 vec3::operator^(vec3& other) {
+    __host__ __device__ vec3 vec3::operator^(const vec3& other) const {
         return vec3{
             y * other.z - z * other.y,
             z * other.x - x * other.z,
@@ -93,7 +93,7 @@ namespace pathtracer {
         };
     }
 
-    __host__ __device__ vec3& vec3::operator^=(vec3& other) {
+    __host__ __device__ vec3& vec3::operator^=(const vec3& other) {
         float temp_x = (y * other.z - z * other.y);
         float temp_y = (z * other.x - x * other.z);
         float temp_z = (x * other.y - y * other.x);
@@ -102,6 +102,12 @@ namespace pathtracer {
         y = temp_y;
         z = temp_z;
         return *this;
+    }
+
+    __host__ __device__ unsigned char to_byte(float n) {
+        if (n < 0.f) return 0;
+        else if (n >= 1.f) return 255;
+        else return (unsigned char) 255.99f * n;
     }
 
 }

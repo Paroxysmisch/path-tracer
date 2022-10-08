@@ -26,6 +26,7 @@ set(test_sources
     main.cu
     float.cu
     vector.cu
+    canvas.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
