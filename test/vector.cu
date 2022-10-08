@@ -2,7 +2,6 @@
 #include "util.cuh"
 #include "check_cuda_errors.h"
 #include <cmath>
-#include <iostream>
 
 __global__ void immutable_addition_test(pathtracer::vec3 a, 
                                         pathtracer::vec3 b, 
@@ -76,6 +75,14 @@ TEST_CASE("vec3 immutable operations", "[util]") {
         pathtracer::vec3 expected{25.0000, -3.08625, -6.69725};
 
         bool res = ((_a * -2.5) == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Hadamard product") {
+        pathtracer::vec3 expected{0, 3, 4};
+
+        bool res = ((a & b) == expected);
 
         REQUIRE(res == true);
     }
@@ -174,6 +181,14 @@ TEST_CASE("vec3 mutable operations", "[util]") {
         REQUIRE(x == true);
         REQUIRE(y == true);
         REQUIRE(z == true);
+    }
+
+    SECTION("Hadamard product") {
+        pathtracer::vec3 expected{-1.2345, 8.381032845, 6.2820205};
+
+        bool res = ((a &= b) == expected);
+
+        REQUIRE(res == true);
     }
 
     SECTION("Scalar division") {

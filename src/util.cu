@@ -49,6 +49,17 @@ namespace pathtracer {
         return *this;
     }
 
+    __host__ __device__ vec3 vec3::operator&(vec3& other) {
+        return vec3{x * other.x, y * other.y, z * other.z};
+    }
+
+    __host__ __device__ vec3& vec3::operator&=(vec3& other) {
+        x *= other.x;
+        y *= other.y;
+        z *= other.z;
+        return *this;
+    }
+
     __host__ __device__ vec3 vec3::operator/(float scalar) {
         return vec3{x / scalar, y / scalar, z / scalar};
     }
