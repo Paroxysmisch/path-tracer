@@ -83,9 +83,13 @@ namespace pathtracer {
     }
 
     __host__ __device__ vec3& vec3::operator^=(vec3& other) {
-        x = y * other.z - z * other.y;
-        y = z * other.x - x * other.z;
-        z = x * other.y - y * other.x;
+        float temp_x = (y * other.z - z * other.y);
+        float temp_y = (z * other.x - x * other.z);
+        float temp_z = (x * other.y - y * other.x);
+
+        x = temp_x;
+        y = temp_y;
+        z = temp_z;
         return *this;
     }
 

@@ -2,6 +2,7 @@
 #include "util.cuh"
 #include "check_cuda_errors.h"
 #include <cmath>
+#include <iostream>
 
 __global__ void immutable_addition_test(pathtracer::vec3 a, 
                                         pathtracer::vec3 b, 
@@ -129,6 +130,81 @@ TEST_CASE("vec3 immutable operations", "[util]") {
     }
 }
 
-// TEST_CASE("vec3 mutable operations", "[util]") {
-    
-// }
+TEST_CASE("vec3 mutable operations", "[util]") {
+    pathtracer::vec3 a{-10.0000, 1.2345, -2.6789};
+    pathtracer::vec3 b{0.12345, 6.78901, -2.345};
+
+    SECTION("Assignment") {
+        pathtracer::vec3 expected{0, 0, 0};
+
+        a = {0, 0, 0};
+
+        bool res = (a == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Addition") {
+        pathtracer::vec3 expected{-9.87655, 8.02351, -5.0239};
+
+        bool res = ((a += b) == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Subtraction") {
+        pathtracer::vec3 expected{-10.12345, -5.55451, -0.3339};
+
+        bool res = ((a -= b) == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Scalar multiplication") {
+        pathtracer::vec3 _a{-10.0000, 1.2345, 2.6789};
+
+        pathtracer::vec3 expected{25.0000, -3.08625, -6.69725};
+
+        bool res = ((_a *= -2.5) == expected);
+        bool x = pathtracer::f_equal(_a.x, 25.0000);
+        bool y = pathtracer::f_equal(_a.y, -3.08625);
+        bool z = pathtracer::f_equal(_a.z, -6.69725);
+
+        REQUIRE(res == true);
+        REQUIRE(x == true);
+        REQUIRE(y == true);
+        REQUIRE(z == true);
+    }
+
+    SECTION("Scalar division") {
+        pathtracer::vec3 _a{-10.0000, 1.2345, 2.6789};
+
+        pathtracer::vec3 expected{4, -0.4938, -1.07156};
+
+        bool res = ((_a /= -2.5) == expected);
+        bool x = pathtracer::f_equal(_a.x, 4);
+        bool y = pathtracer::f_equal(_a.y, -0.4938);
+        bool z = pathtracer::f_equal(_a.z, -1.07156);
+
+        REQUIRE(res == true);
+        REQUIRE(x == true);
+        REQUIRE(y == true);
+        REQUIRE(z == true);
+    }
+
+    SECTION("Normalization") {
+        pathtracer::vec3 expected{-0.959144, 0.1184064, -0.256945};
+
+        bool res = (a.normalize() == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Cross product") {
+        pathtracer::vec3 expected{15.29217, -23.78071, -68.04249};
+
+        bool res = ((a ^= b) == expected);
+
+        REQUIRE(res == true);
+    }
+}
