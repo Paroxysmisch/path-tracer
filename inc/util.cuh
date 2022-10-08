@@ -9,6 +9,8 @@ namespace pathtracer {
         float y;
         float z;
 
+        __host__ __device__ bool operator==(vec3& other);
+
         __host__ __device__ vec3 operator+(vec3& other);
 
         __host__ __device__ vec3& operator+=(vec3& other);

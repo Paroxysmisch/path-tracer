@@ -8,6 +8,10 @@ namespace pathtracer {
         return fabs(a - b) < epsilon;
     }
 
+    __host__ __device__ bool vec3::operator==(vec3& other) {
+        return f_equal(x, other.x) && f_equal(y, other.y) && f_equal(z, other.z);
+    }
+
     __host__ __device__ vec3 vec3::operator+(vec3& other) {
         return vec3{x + other.x, y + other.y, z + other.z};
     }
