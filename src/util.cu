@@ -34,8 +34,12 @@ namespace pathtracer {
         return *this;
     }
 
+    __host__ __device__ vec3 vec3::operator-() {
+        return vec3{-x, -y, -z};
+    }
+
     __host__ __device__ vec3 vec3::operator*(float scalar) {
-        return vector{x * scalar, y * scalar, z * scalar};
+        return vec3{x * scalar, y * scalar, z * scalar};
     }
 
     __host__ __device__ vec3& vec3::operator*=(float scalar) {
@@ -46,7 +50,7 @@ namespace pathtracer {
     }
 
     __host__ __device__ vec3 vec3::operator/(float scalar) {
-        return vector{x / scalar, y / scalar, z / scalar};
+        return vec3{x / scalar, y / scalar, z / scalar};
     }
 
     __host__ __device__ vec3& vec3::operator/=(float scalar) {
@@ -57,7 +61,7 @@ namespace pathtracer {
     }
 
     __host__ __device__ float vec3::mag() {
-        return sqrt(x*x + y*y + z*z);
+        return sqrtf(x*x + y*y + z*z);
     }
 
     __host__ __device__ vec3& vec3::normalize() {
