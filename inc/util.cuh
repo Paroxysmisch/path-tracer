@@ -122,6 +122,9 @@ namespace pathtracer {
             }
         }
 
+        // PPMs end with a newline character
+        file << std::endl;
+
         file.close();
     }
 
