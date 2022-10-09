@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "check_cuda_errors.h"
 
 namespace pathtracer {
@@ -58,19 +59,32 @@ namespace pathtracer {
 
     template <size_t height, size_t width>
     struct canvas {
-        std::array<std::array<vec3, width>, height>* m_data;
+        vec3 m_data[height][width];
 
-        __host__ __device__ canvas();
+        __host__ canvas();
+
+        __host__ ~canvas();
 
         __host__ __device__ canvas& write_pixel(size_t y, size_t x, const vec3& data);
 
-        __host__ __device__ void export_as_PPM(const std::string& filename) const;
+        __host__ void export_as_PPM(const std::string& filename) const;
     };
 
     template <size_t height, size_t width>
-    __host__ __device__ canvas<height, width>::canvas() {
+    __host__ canvas<height, width>::canvas() {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&m_data), 
                                            sizeof(std::array<std::array<vec3, width>, height>)) );
+
+        for (size_t i{0}; i < height; ++i) {
+            for (size_t j{0}; j < width; ++j) {
+                (m_data)[i][j] = {0, 0, 0};
+            }
+        }
+    }
+
+    template <size_t height, size_t width>
+    __host__ canvas<height, width>::~canvas() {
+        cudaFree(m_data);
     }
 
     template <size_t height, size_t width>
@@ -80,12 +94,35 @@ namespace pathtracer {
     }
 
     template <size_t height, size_t width>
-    __host__ __device__ void canvas<height, width>::export_as_PPM(const std::string& filename) const {
+    __host__ void canvas<height, width>::export_as_PPM(const std::string& filename) const {
         std::ofstream file{filename};
 
         file << "P3" << std::endl
              << width << " " << height << std::endl
              << 255 << std::endl;
+
+        constexpr size_t max_per_line{64};
+
+        size_t counter{0};
+
+        for (size_t i{0}; i < height; ++i) {
+            for (size_t j{0}; j < width; ++j) {
+                if (counter >= max_per_line) {
+                    file << std::endl;
+                    counter = 0;
+                }
+
+                const vec3& color = m_data[i][j];
+
+                file << static_cast<int>(to_byte(color.x)) << " "
+                     << static_cast<int>(to_byte(color.y)) << " "
+                     << static_cast<int>(to_byte(color.z)) << " ";
+
+                ++counter;
+            }
+        }
+
+        file.close();
     }
 
 }

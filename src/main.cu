@@ -5,6 +5,4 @@
 
 int main() {
     std::cout << "Hello World" << std::endl;
-
-    pathtracer::canvas<pathtracer::height, pathtracer::width> c{};
 }
