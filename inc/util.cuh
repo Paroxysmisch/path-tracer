@@ -138,4 +138,21 @@ namespace pathtracer {
         file.close();
     }
 
+    struct mat4 {
+        float m_data[16];
+
+        __host__ __device__ mat4();
+
+        __host__ __device__ mat4(float _00, float _01, float _02, float _03,
+                                 float _10, float _11, float _12, float _13,
+                                 float _20, float _21, float _22, float _23,
+                                 float _30, float _31, float _32, float _33);
+
+        __host__ __device__ bool operator==(const mat4& other) const;
+
+        __host__ __device__ mat4 operator*(const mat4& other) const;
+
+        __host__ __device__ mat4& operator*=(const mat4& other);
+    };
+
 }
