@@ -1,11 +1,13 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 #include "check_cuda_errors.h"
+#include "constants.h"
 
 namespace pathtracer {
 
@@ -59,9 +61,14 @@ namespace pathtracer {
 
     template <size_t height, size_t width>
     struct canvas {
-        vec3 m_data[height][width];
+        vec3* m_data;
+        // Only call cudaFree if you are the original owner of the canvas
+        // You are not the owner if you were copy constructed canvas
+        bool m_owner;
 
         __host__ canvas();
+
+        __host__ canvas(canvas<height, width>& other);
 
         __host__ ~canvas();
 
@@ -71,25 +78,28 @@ namespace pathtracer {
     };
 
     template <size_t height, size_t width>
-    __host__ canvas<height, width>::canvas() {
+    __host__ canvas<height, width>::canvas(): m_owner(true) {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&m_data), 
-                                           sizeof(std::array<std::array<vec3, width>, height>)) );
+                                           sizeof(vec3) * height * width) );
 
-        for (size_t i{0}; i < height; ++i) {
-            for (size_t j{0}; j < width; ++j) {
-                (m_data)[i][j] = {0, 0, 0};
-            }
+        for (size_t i{0}; i < height * width; ++i) {
+            (m_data)[i] = {0, 0, 0};
         }
     }
 
     template <size_t height, size_t width>
+    __host__ canvas<height, width>::canvas(canvas<height, width>& other): m_owner(false), m_data(other.m_data) {}
+
+    template <size_t height, size_t width>
     __host__ canvas<height, width>::~canvas() {
-        cudaFree(m_data);
+        if (m_owner) {
+            cudaFree(m_data);
+        }
     }
 
     template <size_t height, size_t width>
     __host__ __device__ canvas<height, width>& canvas<height, width>::write_pixel(size_t y, size_t x, const vec3& data) {
-            m_data[y][x] = data;
+            m_data[y * width + x] = data;
             return *this;
     }
 
@@ -112,7 +122,7 @@ namespace pathtracer {
                     counter = 0;
                 }
 
-                const vec3& color = m_data[i][j];
+                const vec3& color = m_data[i * width + j];
 
                 file << static_cast<int>(to_byte(color.x)) << " "
                      << static_cast<int>(to_byte(color.y)) << " "
