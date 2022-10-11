@@ -123,6 +123,13 @@ namespace pathtracer {
         m_data[12] = _30; m_data[13] = _31; m_data[14] = _32; m_data[15] = _33;
     }
 
+    __host__ __device__  mat4 mat4::get_identity() {
+        return mat4{1.f, 0.f, 0.f, 0.f,
+                    0.f, 1.f, 0.f, 0.f,
+                    0.f, 0.f, 1.f, 0.f,
+                    0.f, 0.f, 0.f, 1.f};
+    }
+
     __host__ __device__ bool mat4::operator==(const mat4& other) const {
         for (size_t i{0}; i < 16; ++i) {
             if (!f_equal(m_data[i], other.m_data[i])) return false;
@@ -156,4 +163,159 @@ namespace pathtracer {
         return *this;
     }
 
+    __host__ __device__ mat4 mat4::transpose() {
+        mat4 result{};
+
+        for (int i{0}; i < 4; ++i) {
+            for (int j{0}; j < 4; ++j) {
+                result.m_data[j * 4 + i] = m_data[i * 4 + j];
+            }
+        }
+
+        return result;
+    }
+
+    __host__ __device__ mat4& mat4::operator=(mat4& other) {
+        for (int i{0}; i < 16; ++i) {
+            m_data[i] = other.m_data[i];
+        }
+
+        return *this;
+    }
+
+    __host__ __device__ mat4 mat4::inverse(bool& success_flag) {
+        float* m = m_data;
+
+        float inv_temp[16];
+
+        inv_temp[0] = m[5]  * m[10] * m[15] - 
+                      m[5]  * m[11] * m[14] - 
+                      m[9]  * m[6]  * m[15] + 
+                      m[9]  * m[7]  * m[14] +
+                      m[13] * m[6]  * m[11] - 
+                      m[13] * m[7]  * m[10];
+
+        inv_temp[4] = -m[4]  * m[10] * m[15] + 
+                       m[4]  * m[11] * m[14] + 
+                       m[8]  * m[6]  * m[15] - 
+                       m[8]  * m[7]  * m[14] - 
+                       m[12] * m[6]  * m[11] + 
+                       m[12] * m[7]  * m[10];
+
+        inv_temp[8] = m[4]  * m[9] * m[15] - 
+                      m[4]  * m[11] * m[13] - 
+                      m[8]  * m[5] * m[15] + 
+                      m[8]  * m[7] * m[13] + 
+                      m[12] * m[5] * m[11] - 
+                      m[12] * m[7] * m[9];
+
+        inv_temp[12] = -m[4]  * m[9] * m[14] + 
+                        m[4]  * m[10] * m[13] +
+                        m[8]  * m[5] * m[14] - 
+                        m[8]  * m[6] * m[13] - 
+                        m[12] * m[5] * m[10] + 
+                        m[12] * m[6] * m[9];
+
+        inv_temp[1] = -m[1]  * m[10] * m[15] + 
+                       m[1]  * m[11] * m[14] + 
+                       m[9]  * m[2] * m[15] - 
+                       m[9]  * m[3] * m[14] - 
+                       m[13] * m[2] * m[11] + 
+                       m[13] * m[3] * m[10];
+
+        inv_temp[5] = m[0]  * m[10] * m[15] - 
+                      m[0]  * m[11] * m[14] - 
+                      m[8]  * m[2] * m[15] + 
+                      m[8]  * m[3] * m[14] + 
+                      m[12] * m[2] * m[11] - 
+                      m[12] * m[3] * m[10];
+
+        inv_temp[9] = -m[0]  * m[9] * m[15] + 
+                       m[0]  * m[11] * m[13] + 
+                       m[8]  * m[1] * m[15] - 
+                       m[8]  * m[3] * m[13] - 
+                       m[12] * m[1] * m[11] + 
+                       m[12] * m[3] * m[9];
+
+        inv_temp[13] = m[0]  * m[9] * m[14] - 
+                       m[0]  * m[10] * m[13] - 
+                       m[8]  * m[1] * m[14] + 
+                       m[8]  * m[2] * m[13] + 
+                       m[12] * m[1] * m[10] - 
+                       m[12] * m[2] * m[9];
+
+        inv_temp[2] = m[1]  * m[6] * m[15] - 
+                      m[1]  * m[7] * m[14] - 
+                      m[5]  * m[2] * m[15] + 
+                      m[5]  * m[3] * m[14] + 
+                      m[13] * m[2] * m[7] - 
+                      m[13] * m[3] * m[6];
+
+        inv_temp[6] = -m[0]  * m[6] * m[15] + 
+                       m[0]  * m[7] * m[14] + 
+                       m[4]  * m[2] * m[15] - 
+                       m[4]  * m[3] * m[14] - 
+                       m[12] * m[2] * m[7] + 
+                       m[12] * m[3] * m[6];
+
+        inv_temp[10] = m[0]  * m[5] * m[15] - 
+                       m[0]  * m[7] * m[13] - 
+                       m[4]  * m[1] * m[15] + 
+                       m[4]  * m[3] * m[13] + 
+                       m[12] * m[1] * m[7] - 
+                       m[12] * m[3] * m[5];
+
+        inv_temp[14] = -m[0]  * m[5] * m[14] + 
+                        m[0]  * m[6] * m[13] + 
+                        m[4]  * m[1] * m[14] - 
+                        m[4]  * m[2] * m[13] - 
+                        m[12] * m[1] * m[6] + 
+                        m[12] * m[2] * m[5];
+
+        inv_temp[3] = -m[1] * m[6] * m[11] + 
+                       m[1] * m[7] * m[10] + 
+                       m[5] * m[2] * m[11] - 
+                       m[5] * m[3] * m[10] - 
+                       m[9] * m[2] * m[7] + 
+                       m[9] * m[3] * m[6];
+
+        inv_temp[7] = m[0] * m[6] * m[11] - 
+                      m[0] * m[7] * m[10] - 
+                      m[4] * m[2] * m[11] + 
+                      m[4] * m[3] * m[10] + 
+                      m[8] * m[2] * m[7] - 
+                      m[8] * m[3] * m[6];
+
+        inv_temp[11] = -m[0] * m[5] * m[11] + 
+                        m[0] * m[7] * m[9] + 
+                        m[4] * m[1] * m[11] - 
+                        m[4] * m[3] * m[9] - 
+                        m[8] * m[1] * m[7] + 
+                        m[8] * m[3] * m[5];
+
+        inv_temp[15] = m[0] * m[5] * m[10] - 
+                       m[0] * m[6] * m[9] - 
+                       m[4] * m[1] * m[10] + 
+                       m[4] * m[2] * m[9] + 
+                       m[8] * m[1] * m[6] - 
+                       m[8] * m[2] * m[5];
+
+        float det = m[0] * inv_temp[0] + m[1] * inv_temp[4] + m[2] * inv_temp[8] + m[3] * inv_temp[12];
+
+        if (det == 0) {
+            success_flag = false;
+            return {};
+        };
+
+        det = 1.f / det;
+
+        for (int i{0}; i < 16; ++i) inv_temp[i] = inv_temp[i] * det;
+
+        success_flag = true;
+
+        return mat4{inv_temp[0],inv_temp[1],inv_temp[2],inv_temp[3],
+                    inv_temp[4], inv_temp[5], inv_temp[6], inv_temp[7],
+                    inv_temp[8], inv_temp[9], inv_temp[10], inv_temp[11],
+                    inv_temp[12], inv_temp[13], inv_temp[14], inv_temp[15]};
+    }
 }

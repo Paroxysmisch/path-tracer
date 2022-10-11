@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 #include "check_cuda_errors.h"
 #include "constants.h"
 
@@ -148,11 +149,19 @@ namespace pathtracer {
                                  float _20, float _21, float _22, float _23,
                                  float _30, float _31, float _32, float _33);
 
+        __host__ __device__ static mat4 get_identity();
+
         __host__ __device__ bool operator==(const mat4& other) const;
 
         __host__ __device__ mat4 operator*(const mat4& other) const;
 
         __host__ __device__ mat4& operator*=(const mat4& other);
+
+        __host__ __device__ mat4 transpose();
+
+        __host__ __device__ mat4& operator=(mat4& other);
+
+        __host__ __device__ mat4 inverse(bool& success_flag);
     };
 
 }
