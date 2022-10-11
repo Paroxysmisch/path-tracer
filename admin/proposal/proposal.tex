@@ -37,7 +37,7 @@
     Apart from the use of these libraries, the rest of the project will be done from scratch. No code has been written prior to the start of the project. I do have limited knowledge of CUDA programming from the books “Programming Massively Parallel Processors” and “CUDA by Example” as well as knowledge about ray tracing from the first-year graphics course as well as the book “The Ray Tracer Challenge”.
 
     \section*{Success Criterion}
-    The project will be considered a success if it is capable of rendering a small variety of different shapes (such as spheres and planes), using path tracing and GPU acceleration. The renderer should be capable of supporting basic lighting and shading, as well as shadows. It should also be able to output the resulting render to a PPM file.
+    The project will be considered a success if it can render a small variety of different shapes (such as spheres and planes), using path tracing and GPU acceleration. This result can be checked by creating a similar scene in a program like Blender and then comparing the similarity of the two outputs. Details for testing similarity include whether the shapes are correct, the lighting, shading, and shadows. It should also be able to output the resulting render to a PPM file.
 
     \section*{Timetable}
     \newtime{Weeks 1--2}{4th--17th October}{Performing some additional research around path tracing in areas such as BRDF and simulation of transparent materials. Also getting a refresher on CUDA and setting up the programming environment (integrating the libraries with CMake, working with a unit test framework (Catch2) and a static analyser (clang-tidy).}
@@ -98,9 +98,9 @@
     It may also possibly need the use of the university’s HPC cluster for high-resolution renders, since these may take several hours otherwise on my personal laptop. The use of the HPC cluster will likely incur a cost that is not too substantial for me to pay for personally. If this resource cannot be secured, my PC should be capable of producing these renders. Although the HPC resources would be useful, they are not strictly necessary for the evaluation of the project.
 
     \section*{Evaluation}
-    The evaluation of the project will focus on several things. The first is how the renderer scales with increasing resolutions. This will involve rendering the same set of scenes with increasing resolutions and looking at how this impacts the time taken. Also, we must explore how the renderer scales with increasing scene complexity, particularly the addition of more light sources. This will be evaluated in the same way as the resolution increasing.
+    The evaluation of the project will focus on several things. The first is how the renderer scales with increasing resolutions. This will involve rendering the same set of scenes with different resolutions and looking at how this impacts the time taken. Also, we must explore how the renderer scales with increasing scene complexity, particularly the addition of more light sources. This will be evaluated in the same way as the resolution increasing.
 
-    Secondly, the evaluation must focus on how the noise is impacted by the number of samples used. This can also be paired with the use of the denoiser, to see how much it helps.
+    Secondly, the evaluation must focus on noise. We can render a reference scene with an incredibly high sample count ($>\!\!\!10,000\  \textrm{samples per pixel}$), without a denoiser. Then, we can render the same scene with varying number of samples and compare these to the reference scene using image quality metrics such as PSNR (Peak signal-to-noise ratio) and SSIM (Structural Similarity Index). Additionally, we can run the denoiser on these renders and again compare the image quality to the reference. We can also make changes to the RNG (Random Number Generator) and see if it impacts the image output.
 
     Lastly, the evaluation will look at how other publicly-available renderers do with the same scene. This also involves comparing with rasterisation techniques. The comparison involves testing how long the render takes as well as the image fidelity.
 
