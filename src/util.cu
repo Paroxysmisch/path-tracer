@@ -76,6 +76,10 @@ namespace pathtracer {
         return sqrtf(x*x + y*y + z*z);
     }
 
+    __host__ __device__ float vec3::mag_2() const {
+        return x*x + y*y + z*z;
+    }
+
     __host__ __device__ vec3& vec3::normalize() {
         float mag = this->mag();
         (*this) /= mag;
@@ -103,6 +107,17 @@ namespace pathtracer {
         y = temp_y;
         z = temp_z;
         return *this;
+    }
+
+    __host__ __device__ vec3 vec3::gen_orthogonal(const vec3& v) {
+        float x = fabs(v.x);
+        float y = fabs(v.y);
+        float z = fabs(v.z);
+
+        vec3 temp = x < y ? (x < z ? vec3{1.f, 0.f, 0.f} : vec3{0.f, 0.f, 1.f}) :
+                            (y < z ? vec3{0.f, 1.f, 0.f} : vec3{0.f, 0.f, 1.f});
+
+        return v ^ temp;
     }
 
     __host__ __device__ unsigned char to_byte(float n) {
@@ -317,5 +332,39 @@ namespace pathtracer {
                     inv_temp[4], inv_temp[5], inv_temp[6], inv_temp[7],
                     inv_temp[8], inv_temp[9], inv_temp[10], inv_temp[11],
                     inv_temp[12], inv_temp[13], inv_temp[14], inv_temp[15]};
+    }
+
+    __host__ __device__ quaternion::quaternion(float w, vec3 ijk): w(w), ijk(ijk) {}
+
+    __host__ __device__ quaternion::quaternion(float w, float i, float j, float k): w(w), ijk({i,j,k}) {}
+
+    __host__ __device__ quaternion quaternion::conjugate() {
+        return quaternion{w, -ijk};
+    }
+
+    __host__ __device__ quaternion& quaternion::normalize() {
+        float normalization_factor = sqrtf(w * w + ijk.mag_2());
+
+        w /= normalization_factor;
+        ijk /= normalization_factor;
+
+        return *this;
+    }
+
+    __host__ __device__ quaternion quaternion::get_rotation_between(vec3 u, vec3 v) {
+        u = u.normalize();
+        v = v.normalize();
+
+        if (u == -v)
+            return quaternion(0.f, (u ^ v).normalize());
+
+        vec3 half = (u + v).normalize();
+        return quaternion(u * half, u ^ half);
+    }
+
+    __host__ __device__ vec3 quaternion::rotate_vector_by_quaternion(const vec3& v, const quaternion& q) {
+        return q.ijk * (q.ijk * v) * 2.f +
+               v * (q.w * q.w - q.ijk * q.ijk) +
+               (q.ijk ^ v) * 2.f * q.w;
     }
 }

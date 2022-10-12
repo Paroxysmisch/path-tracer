@@ -45,6 +45,8 @@ namespace pathtracer {
 
         __host__ __device__ float mag() const;
 
+        __host__ __device__ float mag_2() const;
+
         __host__ __device__ vec3& normalize();
 
         __host__ __device__ float operator*(const vec3& other) const;
@@ -52,6 +54,8 @@ namespace pathtracer {
         __host__ __device__ vec3 operator^(const vec3& other) const;
 
         __host__ __device__ vec3& operator^=(const vec3& other);
+
+        __host__ __device__ static vec3 gen_orthogonal(const vec3& v);
     };
 
     using point = vec3;
@@ -162,6 +166,23 @@ namespace pathtracer {
         __host__ __device__ mat4& operator=(mat4& other);
 
         __host__ __device__ mat4 inverse(bool& success_flag);
+    };
+
+    struct quaternion {
+        float w;
+        vec3 ijk;
+
+        __host__ __device__ quaternion(float w, vec3 ijk);
+
+        __host__ __device__ quaternion(float w, float i, float j, float k);
+
+        __host__ __device__ quaternion conjugate();
+
+        __host__ __device__ quaternion& normalize();
+
+        __host__ __device__ static quaternion get_rotation_between(vec3 u, vec3 v);
+
+        __host__ __device__ static vec3 rotate_vector_by_quaternion(const vec3& v, const quaternion& q);
     };
 
 }

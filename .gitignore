@@ -3,3 +3,5 @@
 !/admin/proposal/proposal.pdf
 
 /build
+
+compile_commands.json

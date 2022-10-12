@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Path_Tracer LANGUAGES CXX CUDA)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 enable_language(CUDA)
 
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
@@ -28,6 +30,7 @@ set(test_sources
     vector.cu
     canvas.cu
     matrix.cu
+    quaternion.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")

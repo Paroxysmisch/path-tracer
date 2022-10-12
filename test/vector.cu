@@ -114,6 +114,14 @@ TEST_CASE("vec3 immutable operations", "[util]") {
         REQUIRE(res3 == false);
     }
 
+    SECTION("Magnitude Squared") {
+        pathtracer::vec3 _a{-10.0000, 1.2345, -2.6789};
+
+        float expected = 108.70049546;
+
+        REQUIRE(pathtracer::f_equal(_a.mag_2(), expected) == true);
+    }
+
     SECTION("Dot product") {
         pathtracer::vec3 _a{-10.0000, 1.2345, -2.6789};
 
@@ -132,6 +140,15 @@ TEST_CASE("vec3 immutable operations", "[util]") {
         pathtracer::vec3 expected{-8, 7, 5.5};
         
         bool res = ((_a ^ b) == expected);
+
+        REQUIRE(res == true);
+    }
+
+    SECTION("Generate orthogonal vector") {
+        float expected = 0.f;
+        pathtracer::vec3 _a{-10.0000, 1.2345, 2.6789};
+
+        bool res = (pathtracer::f_equal(pathtracer::vec3::gen_orthogonal(_a) * _a, expected));
 
         REQUIRE(res == true);
     }
