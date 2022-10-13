@@ -367,4 +367,20 @@ namespace pathtracer {
                v * (q.w * q.w - q.ijk * q.ijk) +
                (q.ijk ^ v) * 2.f * q.w;
     }
+
+    __host__ __device__ quaternion quaternion::get_rotation_to_z_axis(const vec3& normalized_v) {
+        if (f_equal(normalized_v.z, -1.f)) return quaternion(0.f, 1.f, 0.f, 0.f);
+
+        return quaternion(1.f + normalized_v.z, normalized_v.y, -normalized_v.x, 0.f).normalize();
+    }
+
+    __host__ __device__ quaternion quaternion::get_rotation_from_z_axis(const vec3& normalized_v) {
+        if (f_equal(normalized_v.z, -1.f)) return quaternion(0.f, 1.f, 0.f, 0.f);
+
+        return quaternion(1.f + normalized_v.z, -normalized_v.y, normalized_v.x, 0.f).normalize();
+    }
+
+    __host__ __device__ quaternion quaternion::get_inverse_rotation(const quaternion& q) {
+        return quaternion(q.w, -q.ijk);
+    }
 }

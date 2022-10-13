@@ -183,6 +183,12 @@ namespace pathtracer {
         __host__ __device__ static quaternion get_rotation_between(vec3 u, vec3 v);
 
         __host__ __device__ static vec3 rotate_vector_by_quaternion(const vec3& v, const quaternion& q);
+
+        __host__ __device__ static quaternion get_rotation_to_z_axis(const vec3& normalized_v);
+
+        __host__ __device__ static quaternion get_rotation_from_z_axis(const vec3& normalized_v);
+
+        __host__ __device__ static quaternion get_inverse_rotation(const quaternion& q);
     };
 
 }
