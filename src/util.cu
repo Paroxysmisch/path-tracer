@@ -383,4 +383,5 @@ namespace pathtracer {
     __host__ __device__ quaternion quaternion::get_inverse_rotation(const quaternion& q) {
         return quaternion(q.w, -q.ijk);
     }
+
 }

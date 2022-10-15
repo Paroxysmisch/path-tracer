@@ -18,6 +18,7 @@ namespace pathtracer {
         result->object_index = object_index;
         result->lower = lower;
         result->upper = upper;
+        result->count = 1;
 
         return result;
     }
@@ -43,6 +44,8 @@ namespace pathtracer {
                          fmaxf(left_upper.y, right_upper.y),
                          fmaxf(left_upper.z, right_upper.z)};
 
+        result->count = left->count + right->count;
+
         return result;
     }
 
@@ -52,6 +55,7 @@ namespace pathtracer {
                                       int last) {
         // Create a leaf node, if a single object
         if (first == last)
+            // TODO:
             // Make sure to remove the 0-vectors for the lower and upper
             // The function signature will need to change!!!
             return gen_leaf_node(sorted_object_indices[first], {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f});

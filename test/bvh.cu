@@ -73,6 +73,8 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
 
         REQUIRE((leaf->lower == lower) == true);
         REQUIRE((leaf->upper == upper) == true);
+
+        REQUIRE((leaf->count == 1) == true);
     }
 
     SECTION("Generate internal node") {
@@ -94,6 +96,8 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
 
         REQUIRE((root->lower == expected_lower) == true);
         REQUIRE((root->upper == expected_upper) == true);
+
+        REQUIRE((root->count == 2) == true);
     }
 
     SECTION("Generate hierarchy") {
@@ -107,5 +111,7 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE((res->left->right->right->object_index == 2) == true);
         REQUIRE((res->right->left->object_index == 3) == true);
         REQUIRE((res->right->right->object_index == 4) == true);
+
+        REQUIRE((res->count == 5) == true);
     }
 }

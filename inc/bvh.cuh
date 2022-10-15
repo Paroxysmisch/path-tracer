@@ -1,3 +1,5 @@
+#pragma once
+
 #include "check_cuda_errors.h"
 #include "util.cuh"
 
@@ -8,6 +10,7 @@ namespace pathtracer {
         int object_index;
         vec3 lower;
         vec3 upper;
+        int count;
 
         bool is_leaf();
 
@@ -21,7 +24,7 @@ namespace pathtracer {
                                        int last);
     };
 
-    // Convert a point with coordinates in range [-1,-1]
+    // Convert a point with coordinates in range [-1,1]
     // to [0,1]
     vec3 convert_range(vec3& v);
 

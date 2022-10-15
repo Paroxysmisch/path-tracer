@@ -15,6 +15,7 @@ set(path_tracer_sources
     check_cuda_errors.cu
     util.cu
     bvh.cu
+    ray.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
