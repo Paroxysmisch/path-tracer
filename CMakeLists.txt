@@ -14,6 +14,7 @@ set(path_tracer_sources
     main.cu
     check_cuda_errors.cu
     util.cu
+    bvh.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
@@ -31,6 +32,7 @@ set(test_sources
     canvas.cu
     matrix.cu
     quaternion.cu
+    bvh.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
