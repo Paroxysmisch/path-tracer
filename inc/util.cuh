@@ -56,6 +56,14 @@ namespace pathtracer {
         __host__ __device__ vec3& operator^=(const vec3& other);
 
         __host__ __device__ static vec3 gen_orthogonal(const vec3& v);
+
+        __host__ __device__ inline float max_component() {
+            return (x > y) ? ((x > z) ? x : z) : ((y > z) ? y : z);
+        }
+
+        __host__ __device__ inline float min_component() {
+            return (x < y) ? ((x < z) ? x : z) : ((y < z) ? y : z);
+        }
     };
 
     using point = vec3;

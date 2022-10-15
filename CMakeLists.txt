@@ -34,6 +34,7 @@ set(test_sources
     matrix.cu
     quaternion.cu
     bvh.cu
+    ray.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
