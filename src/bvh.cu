@@ -14,6 +14,7 @@ namespace pathtracer {
                                            sizeof(bvh_node)) );
         result->left = nullptr;
         result->right = nullptr;
+        result->object_index = object_index;
 
         return result;
     }
@@ -78,7 +79,7 @@ namespace pathtracer {
         if (first_code == last_code)
             // Return value in the middle if the Morton codes
             // at either end are the same
-            return first + last >> 1;
+            return (first + last) >> 1;
 
         // Find number of highest bits which are the same
         // using a compiler builtin

@@ -23,7 +23,7 @@ namespace pathtracer {
     // to [0,1]
     vec3 convert_range(vec3& v);
 
-    // Inserts two 0s after each bit, converting
+    // Inserts two 0s between each bit, converting
     // a 10-bit integer to a 30-bit one
     unsigned int expand_bits_morton(unsigned int v);
 
