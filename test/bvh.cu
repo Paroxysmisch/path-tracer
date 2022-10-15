@@ -60,7 +60,9 @@ TEST_CASE("BVH utilities", "[acceleron_datastructures]") {
 
 TEST_CASE("BVH", "[acceleron_datastructures]") {
     SECTION("Generate leaf node") {
-        pathtracer::bvh_node* leaf = pathtracer::bvh_node::gen_leaf_node(0);
+        pathtracer::vec3 lower = {0.f, 0.f, 0.f};
+        pathtracer::vec3 upper = {1.f, 1.f, 1.f};
+        pathtracer::bvh_node* leaf = pathtracer::bvh_node::gen_leaf_node(0, lower, upper);
 
         REQUIRE((leaf->is_leaf()) == true);
 
@@ -68,11 +70,17 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE((leaf->right == nullptr) == true);
 
         REQUIRE((leaf->object_index == 0) == true);
+
+        REQUIRE((leaf->lower == lower) == true);
+        REQUIRE((leaf->upper == upper) == true);
     }
 
     SECTION("Generate internal node") {
-        pathtracer::bvh_node* leaf_left = pathtracer::bvh_node::gen_leaf_node(0);
-        pathtracer::bvh_node* leaf_right = pathtracer::bvh_node::gen_leaf_node(1);
+        pathtracer::vec3 expected_lower = {-1.f, -1.f, -1.f};
+        pathtracer::vec3 expected_upper = {0.8f, 0.8f, 0.8f};
+
+        pathtracer::bvh_node* leaf_left = pathtracer::bvh_node::gen_leaf_node(0, {-1.f, 0.5f, -1.f}, {0.8f, 0.f, 0.8f});
+        pathtracer::bvh_node* leaf_right = pathtracer::bvh_node::gen_leaf_node(1, {0.5f, -1.f, 0.75f}, {0.f, 0.8f, 0.f});
 
         pathtracer::bvh_node* root = pathtracer::bvh_node::gen_internal_node(leaf_left, leaf_right);
 
@@ -83,6 +91,9 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
 
         REQUIRE(((root->left)->object_index == 0) == true);
         REQUIRE(((root->right)->object_index == 1) == true);
+
+        REQUIRE((root->lower == expected_lower) == true);
+        REQUIRE((root->upper == expected_upper) == true);
     }
 
     SECTION("Generate hierarchy") {

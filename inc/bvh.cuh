@@ -6,10 +6,12 @@ namespace pathtracer {
         bvh_node* left;
         bvh_node* right;
         int object_index;
+        vec3 lower;
+        vec3 upper;
 
         bool is_leaf();
 
-        static bvh_node* gen_leaf_node(int object_index);
+        static bvh_node* gen_leaf_node(int object_index, const vec3& lower, const vec3& upper);
 
         static bvh_node* gen_internal_node(bvh_node* left, bvh_node* right);
 

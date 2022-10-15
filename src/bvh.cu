@@ -1,5 +1,6 @@
 #include <cmath>
 #include "bvh.cuh"
+#include "util.cuh"
 
 namespace pathtracer {
 
@@ -7,7 +8,7 @@ namespace pathtracer {
         return !left && !right;
     }
 
-    bvh_node* bvh_node::gen_leaf_node(int object_index) {
+    bvh_node* bvh_node::gen_leaf_node(int object_index, const vec3& lower, const vec3& upper) {
         bvh_node* result;
 
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&result), 
@@ -15,6 +16,8 @@ namespace pathtracer {
         result->left = nullptr;
         result->right = nullptr;
         result->object_index = object_index;
+        result->lower = lower;
+        result->upper = upper;
 
         return result;
     }
@@ -27,6 +30,19 @@ namespace pathtracer {
         result->left = left;
         result->right = right;
 
+        vec3 left_lower = left->lower;
+        vec3 right_lower = right->lower;
+        vec3 left_upper = left->upper;
+        vec3 right_upper = right->upper;
+
+        result->lower = {fminf(left_lower.x, right_lower.x),
+                         fminf(left_lower.y, right_lower.y),
+                         fminf(left_lower.z, right_lower.z)};
+
+        result->upper = {fmaxf(left_upper.x, right_upper.x),
+                         fmaxf(left_upper.y, right_upper.y),
+                         fmaxf(left_upper.z, right_upper.z)};
+
         return result;
     }
 
@@ -36,7 +52,9 @@ namespace pathtracer {
                                       int last) {
         // Create a leaf node, if a single object
         if (first == last)
-            return gen_leaf_node(sorted_object_indices[first]);
+            // Make sure to remove the 0-vectors for the lower and upper
+            // The function signature will need to change!!!
+            return gen_leaf_node(sorted_object_indices[first], {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f});
 
         int split = find_split(sorted_morton_codes, first, last);
 
