@@ -84,4 +84,17 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE(((root->left)->object_index == 0) == true);
         REQUIRE(((root->right)->object_index == 1) == true);
     }
+
+    SECTION("Generate hierarchy") {
+        unsigned int sorted_morton_codes[] {0b111000u, 0b111010u, 0b111011, 0b111100u, 0b111111u};
+        int sorted_object_indices[] {0, 1, 2, 3, 4};
+
+        pathtracer::bvh_node* res = pathtracer::bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, 0, 4);
+
+        REQUIRE((res->left->left->object_index == 0) == true);
+        REQUIRE((res->left->right->left->object_index == 1) == true);
+        REQUIRE((res->left->right->right->object_index == 2) == true);
+        REQUIRE((res->right->left->object_index == 3) == true);
+        REQUIRE((res->right->right->object_index == 4) == true);
+    }
 }
