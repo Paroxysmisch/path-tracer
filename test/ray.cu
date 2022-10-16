@@ -16,7 +16,7 @@ TEST_CASE("Ray intersection", "[ray, acceleron_datastructures]") {
         REQUIRE(ray_x1.check_bvh_node_intersection(leaf) == true);
         REQUIRE(ray_y1.check_bvh_node_intersection(leaf) == true);
         REQUIRE(ray_z1.check_bvh_node_intersection(leaf) == true);
-// 
+
         // Backward intersections, where t-value is negative,
         // should be rejected
         pathtracer::ray ray_x2{{-1.f, 0.f, 0.f}, {-1.f, 0.f, 0.f}};
@@ -42,6 +42,14 @@ TEST_CASE("Ray intersection", "[ray, acceleron_datastructures]") {
         pathtracer::ray ray6{{0.f, 0.f, 1.f}, {0.5f, 0.5f, -0.4f}};
 
         REQUIRE(ray6.check_bvh_node_intersection(leaf) == false);
+
+        pathtracer::vec3 lower2 = {-0.9f, -0.9f, -0.9f};
+        pathtracer::vec3 upper2 = {0.9f, 0.9f, 0.9f};
+        pathtracer::bvh_node* leaf2 = pathtracer::bvh_node::gen_leaf_node(0, lower2, upper2);
+
+        pathtracer::ray ray7{{0.f, -1.f, 0.f}, {0.f, 1.f, 0.f}};
+
+        REQUIRE(ray7.check_bvh_node_intersection(leaf2) == true);
 
     }
 }

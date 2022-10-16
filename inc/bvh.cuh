@@ -4,6 +4,7 @@
 #include "util.cuh"
 
 namespace pathtracer {
+
     struct bvh_node {
         bvh_node* left;
         bvh_node* right;
@@ -12,7 +13,7 @@ namespace pathtracer {
         vec3 upper;
         int count;
 
-        bool is_leaf();
+        __host__ __device__ bool is_leaf();
 
         static bvh_node* gen_leaf_node(int object_index, const vec3& lower, const vec3& upper);
 
@@ -20,6 +21,7 @@ namespace pathtracer {
 
         static bvh_node* gen_hierarchy(unsigned int* sorted_morton_codes,
                                        int* sorted_object_indices,
+                                       vec3* temp_dimensions,
                                        int first,
                                        int last);
     };

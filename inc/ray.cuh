@@ -12,7 +12,9 @@ namespace pathtracer {
 
         __host__ __device__ ray(const point& o, const vector& d);
 
-        __host__  bool check_bvh_node_intersection(bvh_node* root);
+        __host__ __device__ bool check_bvh_node_intersection(bvh_node* b);
+
+        __host__  int find_intersections(bvh_node* root, int* collision_buffer);
     };
 
 }

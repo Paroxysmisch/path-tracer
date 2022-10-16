@@ -1,10 +1,11 @@
 #include <cmath>
 #include "bvh.cuh"
 #include "util.cuh"
+#include "ray.cuh"
 
 namespace pathtracer {
 
-    bool bvh_node::is_leaf() {
+    __host__ __device__ bool bvh_node::is_leaf() {
         return !left && !right;
     }
 
@@ -51,6 +52,7 @@ namespace pathtracer {
 
     bvh_node* bvh_node::gen_hierarchy(unsigned int* sorted_morton_codes,
                                       int* sorted_object_indices,
+                                      vec3* temp_dimensions,
                                       int first,
                                       int last) {
         // Create a leaf node, if a single object
@@ -58,12 +60,12 @@ namespace pathtracer {
             // TODO:
             // Make sure to remove the 0-vectors for the lower and upper
             // The function signature will need to change!!!
-            return gen_leaf_node(sorted_object_indices[first], {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f});
+            return gen_leaf_node(sorted_object_indices[first], temp_dimensions[2 * sorted_object_indices[first]], temp_dimensions[2 * sorted_object_indices[first] + 1]);
 
         int split = find_split(sorted_morton_codes, first, last);
 
-        bvh_node* left = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, first, split);
-        bvh_node* right = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, split + 1, last);
+        bvh_node* left = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, first, split);
+        bvh_node* right = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, split + 1, last);
 
         return bvh_node::gen_internal_node(left, right);
     }
