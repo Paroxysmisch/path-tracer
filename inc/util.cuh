@@ -198,4 +198,5 @@ namespace pathtracer {
 
         __host__ __device__ static quaternion get_inverse_rotation(const quaternion& q);
     };
+    
 }

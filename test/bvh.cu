@@ -64,7 +64,8 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
     SECTION("Generate leaf node") {
         pathtracer::vec3 lower = {0.f, 0.f, 0.f};
         pathtracer::vec3 upper = {1.f, 1.f, 1.f};
-        pathtracer::bvh_node* leaf = pathtracer::bvh_node::gen_leaf_node(0, lower, upper);
+        pathtracer::bvh_arena arena{1};
+        pathtracer::bvh_node* leaf = pathtracer::bvh_node::gen_leaf_node(0, lower, upper, &arena);
 
         REQUIRE((leaf->is_leaf()) == true);
 
@@ -77,16 +78,20 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE((leaf->upper == upper) == true);
 
         REQUIRE((leaf->count == 1) == true);
+
+        arena.free_arena();
     }
 
     SECTION("Generate internal node") {
         pathtracer::vec3 expected_lower = {-1.f, -1.f, -1.f};
         pathtracer::vec3 expected_upper = {0.8f, 0.8f, 0.8f};
 
-        pathtracer::bvh_node* leaf_left = pathtracer::bvh_node::gen_leaf_node(0, {-1.f, 0.5f, -1.f}, {0.8f, 0.f, 0.8f});
-        pathtracer::bvh_node* leaf_right = pathtracer::bvh_node::gen_leaf_node(1, {0.5f, -1.f, 0.75f}, {0.f, 0.8f, 0.f});
+        pathtracer::bvh_arena arena{2};
 
-        pathtracer::bvh_node* root = pathtracer::bvh_node::gen_internal_node(leaf_left, leaf_right);
+        pathtracer::bvh_node* leaf_left = pathtracer::bvh_node::gen_leaf_node(0, {-1.f, 0.5f, -1.f}, {0.8f, 0.f, 0.8f}, &arena);
+        pathtracer::bvh_node* leaf_right = pathtracer::bvh_node::gen_leaf_node(1, {0.5f, -1.f, 0.75f}, {0.f, 0.8f, 0.f}, &arena);
+
+        pathtracer::bvh_node* root = pathtracer::bvh_node::gen_internal_node(leaf_left, leaf_right, &arena);
 
         REQUIRE((root->is_leaf()) == false);
 
@@ -100,6 +105,8 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE((root->upper == expected_upper) == true);
 
         REQUIRE((root->count == 2) == true);
+
+        arena.free_arena();
     }
 
     SECTION("Generate hierarchy") {
@@ -113,7 +120,9 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
             {0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}
         };
 
-        pathtracer::bvh_node* res = pathtracer::bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, 0, 4);
+        pathtracer::bvh_arena arena{5};
+
+        pathtracer::bvh_node* res = pathtracer::bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, 0, 4, &arena);
 
         REQUIRE((res->left->left->object_index == 0) == true);
         REQUIRE((res->left->right->left->object_index == 1) == true);
@@ -122,47 +131,5 @@ TEST_CASE("BVH", "[acceleron_datastructures]") {
         REQUIRE((res->right->right->object_index == 4) == true);
 
         REQUIRE((res->count == 5) == true);
-    }
-}
-
-TEST_CASE("BVH traversal", "[acceleron_datastructures]") {
-    SECTION("Find intersections") {
-        unsigned int sorted_morton_codes[] {0b111000u, 0b111010u, 0b111011, 0b111100u, 0b111111u};
-        int sorted_object_indices[] {0, 1, 2, 3, 4};
-        pathtracer::vec3 temp_dimensions[] {
-            {-1.f, -1.f, -1.f}, {-0.6f, -0.6f, -0.6f},
-            {-0.4f, -0.4f, -0.4f}, {1.f, 1.f, 1.f},
-            {0.f, 0.f, 0.f}, {0.5f, 0.5f, 0.5f},
-            {0.4f, 0.4f, 0.4f}, {1.f, 1.f, 1.f},
-            {-0.9f, -0.9f, -0.9f}, {0.9f, 0.9f, 0.9f}
-        };
-
-        pathtracer::bvh_node* root = pathtracer::bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, 0, 4);
-
-        pathtracer::ray ray1{{0.f, -1.f, 0.f}, {0.f, 1.f, 0.f}};
-
-        int collision_buffer[10];
-
-        for (size_t i{0}; i < 10; ++i) collision_buffer[i] = -1;
-
-        pathtracer::vec3 root_lower = {-1.f, -1.f, -1.f};
-        pathtracer::vec3 root_upper = {1.f, 1.f, 1.f};
-        pathtracer::vec3 root_right_lower = {-0.9f, -0.9f, -0.9f};
-        pathtracer::vec3 root_right_upper = {1.f, 1.f, 1.f};
-
-        REQUIRE((root->left->left->object_index == 0) == true);
-        REQUIRE((root->left->right->left->object_index == 1) == true);
-        REQUIRE((root->left->right->right->object_index == 2) == true);
-        REQUIRE((root->right->left->object_index == 3) == true);
-        REQUIRE((root->right->right->object_index == 4) == true);
-        REQUIRE((root->lower == root_lower) == true);
-        REQUIRE((root->upper == root_upper) == true);
-        REQUIRE((root->right->lower == root_right_lower) == true);
-        REQUIRE((root->right->upper == root_right_upper) == true);
-
-        ray1.find_intersections(root, collision_buffer);
-
-        for (size_t i{0}; i < 10; ++i) std::cout << collision_buffer[i] << std::endl;
-
     }
 }

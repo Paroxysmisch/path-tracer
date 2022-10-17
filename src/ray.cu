@@ -13,32 +13,6 @@ namespace pathtracer {
         // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
         // https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
 
-        // float tx1 = (b->lower.x - o.x) * d_inv.x;
-        // float tx2 = (b->upper.x - o.x) * d_inv.x;
-
-        // float tmin = fminf(tx1, tx2);
-        // float tmax = fmaxf(tx1, tx2);
-
-        // float ty1 = (b->lower.y - o.y) * d_inv.y;
-        // float ty2 = (b->upper.y - o.y) * d_inv.y;
-
-        // tmin = fmaxf(tmin, fminf(ty1, ty2));
-        // tmax = fminf(tmax, fmaxf(ty1, ty2));
-
-        // float tz1 = (b->lower.z - o.z) * d_inv.z;
-        // float tz2 = (b->upper.z - o.z) * d_inv.z;
-
-        // tmin = fmaxf(tmin, fminf(tz1, tz2));
-        // tmax = fminf(tmax, fmaxf(tz1, tz2));
-        
-        // std::cout << d_inv.y << std::endl;
-        // std::cout << tx1 << " " << tx2 << std::endl;
-        // std::cout << ty1 << " " << ty2 << std::endl;
-        // std::cout << tz1 << " " << tz2 << std::endl;
-        // std::cout << tmin << " " << tmax << std::endl;
-
-        // return tmax >= fmaxf(0.f, tmin);
-
         // Special case when ray origin is within the bounding box,
         // intersection is guaranteed (even with a 0 vector for efficiency)
         if ((b->lower.x <= o.x) && (o.x <= b->upper.x) &&
@@ -73,18 +47,16 @@ namespace pathtracer {
             ++num_collisions;
         }
 
-        // std::cout << stack_ptr << " currently pointing at" << *stack_ptr << std::endl;
-
         do {
-            std::cout << stack_ptr << " currently pointing at" << *stack_ptr << std::endl;
+            // std::cout << stack_ptr << " currently pointing at" << *stack_ptr << std::endl;
 
-            if (node->left->is_leaf()) {
-                std::cout << "left: " << node->left->object_index << std::endl;
-            }
+            // if (node->left->is_leaf()) {
+            //     std::cout << "left: " << node->left->object_index << std::endl;
+            // }
 
-            if (node->right->is_leaf()) {
-                std::cout << "right: " << node->right->object_index << std::endl;
-            }
+            // if (node->right->is_leaf()) {
+            //     std::cout << "right: " << node->right->object_index << std::endl;
+            // }
 
             bvh_node* child_l = node->left;
             bvh_node* child_r = node->right;
@@ -94,19 +66,19 @@ namespace pathtracer {
             if (overlap_l && child_l->is_leaf()) {
                 collision_buffer[num_collisions] = child_l->object_index;
                 ++num_collisions;
-                std::cout << "Collision left! " << child_l->object_index << std::endl;
+                // std::cout << "Collision left! " << child_l->object_index << std::endl;
             }
 
             if (overlap_r && child_r->is_leaf()) {
                 collision_buffer[num_collisions] = child_r->object_index;
                 ++num_collisions;
-                std::cout << "Collision right! " << child_r->object_index << std::endl;
+                // std::cout << "Collision right! " << child_r->object_index << std::endl;
             }
 
             bool traverse_l = (overlap_l && !(child_l->is_leaf()));
             bool traverse_r = (overlap_r && !(child_r->is_leaf()));
 
-            std::cout << "traverse_l: " << traverse_l << ", traverse_r: " << traverse_r << std::endl;
+            // std::cout << "traverse_l: " << traverse_l << ", traverse_r: " << traverse_r << std::endl;
 
             if (!traverse_l && !traverse_r) {
                 node = *--stack_ptr;
@@ -114,7 +86,7 @@ namespace pathtracer {
                 node = (traverse_l) ? child_l : child_r;
                 if (traverse_l && traverse_r) {
                     *stack_ptr++ = child_r;
-                    std::cout << "Put right" << std::endl;
+                    // std::cout << "Put right" << std::endl;
                 }
             }
         } while (node != nullptr);

@@ -1,7 +1,9 @@
+#include <cassert>
 #include <cmath>
 #include "bvh.cuh"
 #include "util.cuh"
 #include "ray.cuh"
+#include "check_cuda_errors.h"
 
 namespace pathtracer {
 
@@ -9,11 +11,10 @@ namespace pathtracer {
         return !left && !right;
     }
 
-    bvh_node* bvh_node::gen_leaf_node(int object_index, const vec3& lower, const vec3& upper) {
+    bvh_node* bvh_node::gen_leaf_node(int object_index, const vec3& lower, const vec3& upper, bvh_arena* arena) {
         bvh_node* result;
 
-        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&result), 
-                                           sizeof(bvh_node)) );
+        arena->bvh_arena_malloc(&result);
         result->left = nullptr;
         result->right = nullptr;
         result->object_index = object_index;
@@ -24,11 +25,10 @@ namespace pathtracer {
         return result;
     }
 
-    bvh_node* bvh_node::gen_internal_node(bvh_node* left, bvh_node* right) {
+    bvh_node* bvh_node::gen_internal_node(bvh_node* left, bvh_node* right, bvh_arena* arena) {
         bvh_node* result;
 
-        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&result), 
-                                           sizeof(bvh_node)) );
+        arena->bvh_arena_malloc(&result);
         result->left = left;
         result->right = right;
 
@@ -54,20 +54,21 @@ namespace pathtracer {
                                       int* sorted_object_indices,
                                       vec3* temp_dimensions,
                                       int first,
-                                      int last) {
+                                      int last,
+                                      bvh_arena* arena) {
         // Create a leaf node, if a single object
         if (first == last)
             // TODO:
             // Make sure to remove the 0-vectors for the lower and upper
             // The function signature will need to change!!!
-            return gen_leaf_node(sorted_object_indices[first], temp_dimensions[2 * sorted_object_indices[first]], temp_dimensions[2 * sorted_object_indices[first] + 1]);
+            return gen_leaf_node(sorted_object_indices[first], temp_dimensions[2 * sorted_object_indices[first]], temp_dimensions[2 * sorted_object_indices[first] + 1], arena);
 
         int split = find_split(sorted_morton_codes, first, last);
 
-        bvh_node* left = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, first, split);
-        bvh_node* right = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, split + 1, last);
+        bvh_node* left = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, first, split, arena);
+        bvh_node* right = bvh_node::gen_hierarchy(sorted_morton_codes, sorted_object_indices, temp_dimensions, split + 1, last, arena);
 
-        return bvh_node::gen_internal_node(left, right);
+        return bvh_node::gen_internal_node(left, right, arena);
     }
 
     vec3 convert_range(vec3& v) {
@@ -127,6 +128,24 @@ namespace pathtracer {
         } while (step > 1);
 
         return split_point;
+    }
+
+    bvh_arena::bvh_arena(int num_objects): 
+        max_num_elems(2 * num_objects - 1), current(0) {
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&data), 2 * num_objects * sizeof(bvh_node)) );
+    }
+
+    bool bvh_arena::bvh_arena_malloc(bvh_node** b) {
+        if (current < max_num_elems) {
+            *b = &(data[current]);
+            ++current;
+            return true;
+        }
+        return false;
+    }
+
+    void bvh_arena::free_arena() {
+        checkCudaErrors( cudaFree(data) );
     }
 
 }
