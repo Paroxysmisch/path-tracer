@@ -334,6 +334,91 @@ namespace pathtracer {
                     inv_temp[12], inv_temp[13], inv_temp[14], inv_temp[15]};
     }
 
+    __host__ __device__ mat4 mat4::get_translation(float x, float y, float z) {
+        return mat4(1.f, 0.f, 0.f, x,
+                    0.f, 1.f, 0.f, y,
+                    0.f, 0.f, 1.f, z,
+                    0.f, 0.f, 0.f, 1.f);
+    }
+
+    __host__ __device__ mat4 mat4::get_scaling(float x, float y, float z) {
+        return mat4(x, 0.f, 0.f, 0.f,
+                    0.f, y, 0.f, 0.f,
+                    0.f, 0.f, z, 0.f,
+                    0.f, 0.f, 0.f, 1.f);
+    }
+
+    __host__ __device__ mat4 mat4::get_rotation_x(float rad) {
+        float cos_term = cosf(rad);
+        float sin_term = sinf(rad);
+        return mat4(1.f, 0.f,      0.f,       0.f,
+                    0.f, cos_term, -sin_term, 0.f,
+                    0.f, sin_term, cos_term,  0.f,
+                    0.f, 0.f,      0.f,       1.f);
+    }
+
+    __host__ __device__ mat4 mat4::get_rotation_y(float rad) {
+        float cos_term = cosf(rad);
+        float sin_term = sinf(rad);
+        return mat4(cos_term, 0.f, sin_term,  0.f,
+                    0.f,      1.f, 0.f,       0.f,
+                    -sin_term,0.f, cos_term,  0.f,
+                    0.f,      0.f, 0.f,       1.f);
+    }
+
+    __host__ __device__ mat4 mat4::get_rotation_z(float rad) {
+        float cos_term = cosf(rad);
+        float sin_term = sinf(rad);
+        return mat4(cos_term, -sin_term, 0.f, 0.f,
+                    sin_term, cos_term,  0.f, 0.f,
+                    0.f,      0.f,       1.f, 0.f,
+                    0.f,      0.f,       0.f, 1.f);
+    }
+
+    __host__ __device__ mat4 mat4::get_shearing(float x_y, float x_z,
+                                          float y_x, float y_z,
+                                          float z_x, float z_y) {
+        return mat4(1.f, x_y, x_z, 0.f,
+                    y_x, 1.f, y_z, 0.f,
+                    z_x, z_y, 1.f, 0.f,
+                    0.f, 0.f, 0.f, 1.f);
+    }
+
+    __host__ __device__ point mat4::transform_point(const point& p) {
+        point result;
+
+        result.x = m_data[0] * p.x +
+                   m_data[1] * p.y +
+                   m_data[2] * p.z +
+                   m_data[3];
+        result.y = m_data[4 + 0] * p.x +
+                   m_data[4 + 1] * p.y +
+                   m_data[4 + 2] * p.z +
+                   m_data[4 + 3];
+        result.z = m_data[8 + 0] * p.x +
+                   m_data[8 + 1] * p.y +
+                   m_data[8 + 2] * p.z +
+                   m_data[8 + 3];
+            
+        return result;
+    }
+
+    __host__ __device__ vector mat4::transform_vector(const vector& v) {
+        vector result;
+
+        result.x = m_data[0] * v.x +
+                   m_data[1] * v.y +
+                   m_data[2] * v.z;
+        result.y = m_data[4 + 0] * v.x +
+                   m_data[4 + 1] * v.y +
+                   m_data[4 + 2] * v.z;
+        result.z = m_data[8 + 0] * v.x +
+                   m_data[8 + 1] * v.y +
+                   m_data[8 + 2] * v.z;
+
+        return result;
+    }
+
     __host__ __device__ quaternion::quaternion(float w, vec3 ijk): w(w), ijk(ijk) {}
 
     __host__ __device__ quaternion::quaternion(float w, float i, float j, float k): w(w), ijk({i,j,k}) {}

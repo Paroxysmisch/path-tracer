@@ -174,6 +174,24 @@ namespace pathtracer {
         __host__ __device__ mat4& operator=(mat4& other);
 
         __host__ __device__ mat4 inverse(bool& success_flag);
+
+        __host__ __device__ static mat4 get_translation(float x, float y, float z);
+
+        __host__ __device__ static mat4 get_scaling(float x, float y, float z);
+
+        __host__ __device__ static mat4 get_rotation_x(float rad);
+
+        __host__ __device__ static mat4 get_rotation_y(float rad);
+
+        __host__ __device__ static mat4 get_rotation_z(float rad);
+
+        __host__ __device__ static mat4 get_shearing(float x_y, float x_z,
+                                                     float y_x, float y_z,
+                                                     float z_x, float z_y);
+
+        __host__ __device__ point transform_point(const point& p);
+
+        __host__ __device__ vector transform_vector(const vector& v);
     };
 
     struct quaternion {
@@ -198,5 +216,5 @@ namespace pathtracer {
 
         __host__ __device__ static quaternion get_inverse_rotation(const quaternion& q);
     };
-    
+
 }

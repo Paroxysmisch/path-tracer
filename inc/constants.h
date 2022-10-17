@@ -8,5 +8,7 @@ namespace pathtracer {
     inline constexpr size_t height = 400;
 
     inline constexpr size_t width = 600;
+
+    inline constexpr float pi = 3.14159265;
     
 }
