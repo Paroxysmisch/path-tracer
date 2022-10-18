@@ -58,16 +58,6 @@ TEST_CASE("Ray intersection", "[ray, acceleron_datastructures]") {
         arena1.free_arena();
         arena2.free_arena();
     }
-
-    SECTION("With sphere") {
-        pathtracer::ray ray{{-2.f, 0.f, 0.f}, {1.f, 0.f, 0.f}};
-        pathtracer::intersection intersection_buffer[2];
-        int object_index{0};
-
-        pathtracer::sphere sphere{pathtracer::mat4::get_identity()};
-
-        sphere.find_intersections(ray, intersection_buffer, object_index);
-    }
 }
 
 TEST_CASE("BVH traversal", "[ray, acceleron_datastructures]") {

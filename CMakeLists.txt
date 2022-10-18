@@ -36,6 +36,7 @@ set(test_sources
     quaternion.cu
     bvh.cu
     ray.cu
+    shapes.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
