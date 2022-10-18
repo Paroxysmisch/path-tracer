@@ -18,12 +18,12 @@ namespace pathtracer {
 
         __host__ __device__ shape(vec3 lower, vec3 upper, mat4 transformation_to_world);
 
-        __host__ __device__ virtual int find_intersections(ray& r, intersection* intersection_buffer, int object_index) = 0;
+        __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) = 0;
     };
 
     struct sphere : shape {
         __host__ __device__ sphere(const mat4& transformation_to_world);
 
-        __host__ __device__ virtual int find_intersections(ray& r, intersection* intersection_buffer, int object_index) override;
+        __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
     };
 }

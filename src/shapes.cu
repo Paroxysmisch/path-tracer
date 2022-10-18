@@ -30,12 +30,13 @@ namespace pathtracer {
     __host__ __device__ sphere::sphere(const mat4& transformation_to_world): shape(transformation_to_world.transform_point({-1.f, -1.f, -1.f}),
                                                       transformation_to_world.transform_point({1.f, 1.f, 1.f}), transformation_to_world) {}
 
-    __host__ __device__ int sphere::find_intersections(ray& r, intersection* intersection_buffer, int object_index) {
+    __host__ __device__ int sphere::find_intersections(const ray& r, intersection* intersection_buffer, int object_index) {
+        ray _r{transformation_to_object.transform_point(r.o),
+               transformation_to_object.transform_vector(r.d)};
 
-
-        float a = r.d * r.d;
-        float b = 2 * (r.d * r.o);
-        float c = (r.o * r.o) - 1.f;
+        float a = _r.d * _r.d;
+        float b = 2 * (_r.d * _r.o);
+        float c = (_r.o * _r.o) - 1.f;
 
         float discriminant = (b * b) - (4 * a * c);
 
