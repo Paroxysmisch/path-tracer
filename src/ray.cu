@@ -32,7 +32,7 @@ namespace pathtracer {
         return (tmin.max_component() <= tmax.min_component()) && tmin.max_component() >= 0.f;
     }
 
-    __host__  int ray::find_intersections(bvh_node* root, int* collision_buffer) {
+    __host__ __device__  int ray::find_intersections(bvh_node* root, int* collision_buffer) {
         bvh_node* stack[64];
         bvh_node** stack_ptr = stack;
         *stack_ptr = nullptr;
@@ -92,6 +92,10 @@ namespace pathtracer {
         } while (node != nullptr);
 
         return num_collisions;
+    }
+
+    __host__ __device__ point ray::shoot_distance(float t) {
+        return o + (d * t);
     }
 
 }

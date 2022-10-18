@@ -3,6 +3,7 @@
 #include "ray.cuh"
 #include "check_cuda_errors.h"
 #include "bvh.cuh"
+#include "shapes.cuh"
 
 TEST_CASE("Ray intersection", "[ray, acceleron_datastructures]") {
     SECTION("With BVH bounding box") {
@@ -57,6 +58,16 @@ TEST_CASE("Ray intersection", "[ray, acceleron_datastructures]") {
         arena1.free_arena();
         arena2.free_arena();
     }
+
+    SECTION("With sphere") {
+        pathtracer::ray ray{{-2.f, 0.f, 0.f}, {1.f, 0.f, 0.f}};
+        pathtracer::intersection intersection_buffer[2];
+        int object_index{0};
+
+        pathtracer::sphere sphere{pathtracer::mat4::get_identity()};
+
+        sphere.find_intersections(ray, intersection_buffer, object_index);
+    }
 }
 
 TEST_CASE("BVH traversal", "[ray, acceleron_datastructures]") {
@@ -102,5 +113,14 @@ TEST_CASE("BVH traversal", "[ray, acceleron_datastructures]") {
         REQUIRE((collision_buffer[1] == 4) == true);
 
         arena.free_arena();
+    }
+}
+
+TEST_CASE("Ray utils", "[ray]") {
+    pathtracer::ray ray1{{0.1f, 0.2f, 0.3f}, {-0.4f, -0.5f, 0.6f}};
+    SECTION("Shoot distance") {
+        pathtracer::point expected{-0.1f, -0.05f, 0.6f};
+
+        REQUIRE((ray1.shoot_distance(0.5f) == expected) == true);
     }
 }

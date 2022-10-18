@@ -14,7 +14,9 @@ namespace pathtracer {
 
         __host__ __device__ bool check_bvh_node_intersection(bvh_node* b);
 
-        __host__  int find_intersections(bvh_node* root, int* collision_buffer);
+        __host__ __device__ int find_intersections(bvh_node* root, int* collision_buffer);
+
+        __host__ __device__ point shoot_distance(float t);
     };
 
 }

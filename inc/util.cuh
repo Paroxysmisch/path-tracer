@@ -19,6 +19,10 @@ namespace pathtracer {
         float y;
         float z;
 
+        __host__ __device__ vec3();
+
+        __host__ __device__ vec3(float x, float y, float z);
+
         __host__ __device__ bool operator==(const vec3& other) const;
 
         __host__ __device__ vec3 operator+(const vec3& other) const;
@@ -171,7 +175,7 @@ namespace pathtracer {
 
         __host__ __device__ mat4 transpose();
 
-        __host__ __device__ mat4& operator=(mat4& other);
+        __host__ __device__ mat4& operator=(const mat4& other);
 
         __host__ __device__ mat4 inverse(bool& success_flag);
 
@@ -189,9 +193,9 @@ namespace pathtracer {
                                                      float y_x, float y_z,
                                                      float z_x, float z_y);
 
-        __host__ __device__ point transform_point(const point& p);
+        __host__ __device__ point transform_point(const point& p) const;
 
-        __host__ __device__ vector transform_vector(const vector& v);
+        __host__ __device__ vector transform_vector(const vector& v) const;
     };
 
     struct quaternion {

@@ -9,6 +9,10 @@ namespace pathtracer {
         return fabs(a - b) < epsilon;
     }
 
+    __host__ __device__ vec3::vec3() {}
+
+    __host__ __device__ vec3::vec3(float x, float y, float z): x(x), y(y), z(z) {}
+
     __host__ __device__ bool vec3::operator==(const vec3& other) const {
         return f_equal(x, other.x) && f_equal(y, other.y) && f_equal(z, other.z);
     }
@@ -190,7 +194,7 @@ namespace pathtracer {
         return result;
     }
 
-    __host__ __device__ mat4& mat4::operator=(mat4& other) {
+    __host__ __device__ mat4& mat4::operator=(const mat4& other) {
         for (int i{0}; i < 16; ++i) {
             m_data[i] = other.m_data[i];
         }
@@ -384,8 +388,8 @@ namespace pathtracer {
                     0.f, 0.f, 0.f, 1.f);
     }
 
-    __host__ __device__ point mat4::transform_point(const point& p) {
-        point result;
+    __host__ __device__ point mat4::transform_point(const point& p) const {
+        point result{};
 
         result.x = m_data[0] * p.x +
                    m_data[1] * p.y +
@@ -403,8 +407,8 @@ namespace pathtracer {
         return result;
     }
 
-    __host__ __device__ vector mat4::transform_vector(const vector& v) {
-        vector result;
+    __host__ __device__ vector mat4::transform_vector(const vector& v) const {
+        vector result{};
 
         result.x = m_data[0] * v.x +
                    m_data[1] * v.y +
