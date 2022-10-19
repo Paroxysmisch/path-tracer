@@ -24,6 +24,8 @@ namespace pathtracer {
     struct sphere : shape {
         __host__ __device__ sphere(const mat4& transformation_to_world);
 
+        // __host__ __device__ sphere& operator=(const sphere& other);
+
         __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
     };
 
@@ -32,6 +34,7 @@ namespace pathtracer {
     };
 
     union shape_data {
+        __host__ __device__ shape_data& operator=(const sphere& other);
         sphere sphere;
     };
 

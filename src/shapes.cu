@@ -26,6 +26,15 @@ namespace pathtracer {
     __host__ __device__ sphere::sphere(const mat4& transformation_to_world): shape(transformation_to_world.transform_point({-1.f, -1.f, -1.f}),
                                                       transformation_to_world.transform_point({1.f, 1.f, 1.f}), transformation_to_world) {}
 
+    // __host__ __device__ sphere& sphere::operator=(const sphere& other) {
+    //     lower = other.lower;
+    //     upper = other.upper;
+    //     transformation_to_world = other.transformation_to_world;
+    //     transformation_to_object = other.transformation_to_object;
+
+    //     return *this;
+    // }
+
     __host__ __device__ int sphere::find_intersections(const ray& r, intersection* intersection_buffer, int object_index) {
         ray _r{transformation_to_object.transform_point(r.o),
                transformation_to_object.transform_vector(r.d)};
@@ -42,6 +51,12 @@ namespace pathtracer {
         intersection_buffer[1] = intersection{(-b + sqrtf(discriminant)) / (2 * a), object_index};
 
         return 2;
+    }
+
+    __host__ __device__ shape_data& shape_data::operator=(const struct sphere& other) {
+        sphere = other;
+
+        return *this;
     }
 
 }
