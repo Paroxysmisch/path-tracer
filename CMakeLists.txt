@@ -17,6 +17,7 @@ set(path_tracer_sources
     bvh.cu
     ray.cu
     shapes.cu
+    scene.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
@@ -37,6 +38,7 @@ set(test_sources
     bvh.cu
     ray.cu
     shapes.cu
+    scene.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")

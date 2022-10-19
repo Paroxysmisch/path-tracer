@@ -72,7 +72,7 @@ TEST_CASE("Canvas on GPU", "[util]") {
     REQUIRE(res == true);
 }
 
-__global__ void shadow_test(pathtracer::canvas<1000, 1000> c) {
+__global__ void shadow_test(pathtracer::canvas<1000, 1000> c, pathtracer::sphere sphere) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -91,8 +91,6 @@ __global__ void shadow_test(pathtracer::canvas<1000, 1000> c) {
     float pixel_size = wall_size / 1000;
 
     float half = wall_size / 2;
-
-    pathtracer::sphere sphere{pathtracer::mat4::get_scaling(0.5f, 1.f, 1.f)};
 
     while (i < 1000) {
         float world_y = half - pixel_size * i;
@@ -126,7 +124,10 @@ TEST_CASE("Shadow of sphere", "[util]") {
 
     dim3 blocks(16, 16);
     dim3 threads(16, 16);
-    shadow_test<<<blocks, threads>>>(c);
+
+    pathtracer::sphere sphere{pathtracer::mat4::get_scaling(0.5f, 1.f, 1.f)};
+
+    shadow_test<<<blocks, threads>>>(c, sphere);
 
     checkCudaErrors( cudaDeviceSynchronize() );
 

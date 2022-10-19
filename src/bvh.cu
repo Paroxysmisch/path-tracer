@@ -71,7 +71,7 @@ namespace pathtracer {
         return bvh_node::gen_internal_node(left, right, arena);
     }
 
-    vec3 convert_range(vec3& v) {
+    vec3 convert_range(const vec3& v) {
         return vec3{(v.x + 1.f) / 2.f,
                     (v.y + 1.f) / 2.f,
                     (v.z + 1.f) / 2.f};
@@ -85,7 +85,7 @@ namespace pathtracer {
         return i;
     }
 
-    unsigned int point_to_morton(vec3& v) {
+    unsigned int point_to_morton(const vec3& v) {
         vec3 _v = convert_range(v);
         // Ensure the x, y and z components are representable by 10 bits
         float x = fminf(fmaxf(_v.x * 1024.0f, 0.0f), 1023.0f);
@@ -97,7 +97,7 @@ namespace pathtracer {
         return _x * 4 + _y * 2 + _z;
     }
 
-    int find_split(unsigned int* sorted_morton_codes, int first, int last) {
+    int find_split(const unsigned int* sorted_morton_codes, int first, int last) {
         unsigned int first_code = sorted_morton_codes[first];
         unsigned int last_code = sorted_morton_codes[last];
 

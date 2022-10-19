@@ -31,7 +31,7 @@ namespace pathtracer {
 
     // Convert a point with coordinates in range [-1,1]
     // to [0,1]
-    vec3 convert_range(vec3& v);
+    vec3 convert_range(const vec3& v);
 
     // Inserts two 0s between each bit, converting
     // a 10-bit integer to a 30-bit one
@@ -40,9 +40,9 @@ namespace pathtracer {
     // For a point with coordinates within [-1, -1], 
     // transfrom to coordinates within [0,1] and 
     // generate its Morton code
-    unsigned int point_to_morton(vec3& v);
+    unsigned int point_to_morton(const vec3& v);
 
-    int find_split(unsigned int* sorted_morton_codes, int first, int last);
+    int find_split(const unsigned int* sorted_morton_codes, int first, int last);
 
     struct bvh_arena {
         int max_num_elems;

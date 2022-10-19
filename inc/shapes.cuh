@@ -26,4 +26,17 @@ namespace pathtracer {
 
         __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
     };
+
+    enum shape_type {
+        SPHERE
+    };
+
+    union shape_data {
+        sphere sphere;
+    };
+
+    struct object {
+        shape_type shape_t;
+        shape_data data;
+    };
 }
