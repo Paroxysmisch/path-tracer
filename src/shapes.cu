@@ -4,21 +4,17 @@
 namespace pathtracer {
 
     __host__ __device__ intersection* get_closest_positive_intersection(intersection* intersection_buffer, int size) {
-        if (size <= 0) return nullptr;
+        intersection* result = nullptr;
+        float t_value = INFINITY;
 
-        intersection* result = &intersection_buffer[0];
-
-        for (int i{1}; i < size; ++i) {
-            if (intersection_buffer[i].t_value >= 0.f && 
-                intersection_buffer[i].t_value < result->t_value) {
+        for (int i{0}; i < size; ++i) {
+            if (intersection_buffer[i].t_value > 0.f && 
+                intersection_buffer[i].t_value < t_value) {
                 result = &intersection_buffer[i];
             }
         }
 
-        if (result->t_value >= 0.f) 
-            return result;
-        else
-            return nullptr;
+        return result;
     }
 
     __host__ __device__ shape::shape(vec3 lower, vec3 upper, mat4 transformation_to_world): lower(lower), upper(upper), transformation_to_world(transformation_to_world) {
