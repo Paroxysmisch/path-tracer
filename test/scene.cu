@@ -206,5 +206,11 @@ TEST_CASE("BVH construction from objects", "[scene, acceleron_datastructures, sh
         checkCudaErrors( cudaDeviceSynchronize() );
 
         c.export_as_PPM("Multiple_Shadow_Test_GPU.ppm");
+
+        REQUIRE((root->left->object_index == 4) == true);
+        REQUIRE((root->right->left->object_index == 2) == true);
+        REQUIRE((root->right->right->right->object_index == 3) == true);
+        REQUIRE((root->right->right->left->left->object_index == 0) == true);
+        REQUIRE((root->right->right->left->right->object_index == 1) == true);
     }
 }

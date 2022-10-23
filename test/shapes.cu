@@ -57,4 +57,24 @@ TEST_CASE("Shape utils") {
 
         REQUIRE((pathtracer::f_equal(res->t_value, 0.229f)) == true);
     }
+
+    SECTION("Local normal at") {
+        pathtracer::sphere sphere{pathtracer::mat4::get_scaling(0.5f, 1.f, 1.f)};
+
+        pathtracer::vec3 expected{0.577350f, 0.577350f, 0.577350f};
+
+        REQUIRE((sphere.local_normal_at(expected) == expected) == true);
+    }
+
+    SECTION("World normal at") {
+        pathtracer::sphere sphere{pathtracer::mat4::get_scaling(1.f, 0.5f, 1.f) * pathtracer::mat4::get_rotation_z(pathtracer::pi / 5)};
+
+        pathtracer::vec3 world_surface_point{0.f, 0.707106f, -0.707106f};
+
+        pathtracer::vec3 expected{0.f, 0.97014f, -0.24254f};
+
+        auto temp = sphere.world_normal_at(world_surface_point);
+
+        REQUIRE((sphere.world_normal_at(world_surface_point) == expected) == true);
+    }
 }

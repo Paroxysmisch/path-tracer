@@ -21,6 +21,11 @@ namespace pathtracer {
         bool success_flag;
         mat4 transformation_to_object_copy = mat4{transformation_to_world};
         transformation_to_object = transformation_to_object_copy.inverse(success_flag);
+        inverse_transpose = transformation_to_object.transpose();
+    }
+
+    __host__ __device__ vec3 shape::world_normal_at(const point& world_surface_point) const {
+        return inverse_transpose.transform_vector(local_normal_at(transformation_to_object.transform_vector(world_surface_point))).normalize();
     }
 
     __host__ __device__ sphere::sphere(const mat4& transformation_to_world): shape(transformation_to_world.transform_point({-1.f, -1.f, -1.f}),
@@ -51,6 +56,10 @@ namespace pathtracer {
         intersection_buffer[1] = intersection{(-b + sqrtf(discriminant)) / (2 * a), object_index};
 
         return 2;
+    }
+
+    __host__ __device__ vec3 sphere::local_normal_at(const point& local_surface_point) const {
+        return local_surface_point;
     }
 
     __host__ __device__ shape_data& shape_data::operator=(const struct sphere& other) {
