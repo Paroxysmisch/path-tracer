@@ -124,6 +124,10 @@ namespace pathtracer {
         return v ^ temp;
     }
 
+    __host__ __device__ vector vec3::reflect(vector normal) {
+        return *this - (normal * 2 * (*this * normal));
+    }
+
     __host__ __device__ unsigned char to_byte(float n) {
         if (n < 0.f) return 0;
         else if (n >= 1.f) return 255;

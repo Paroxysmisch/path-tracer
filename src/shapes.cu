@@ -5,11 +5,12 @@ namespace pathtracer {
 
     __host__ __device__ intersection* get_closest_positive_intersection(intersection* intersection_buffer, int size) {
         intersection* result = nullptr;
-        float t_value = INFINITY;
+        float res = INFINITY;
 
         for (int i{0}; i < size; ++i) {
             if (intersection_buffer[i].t_value > 0.f && 
-                intersection_buffer[i].t_value < t_value) {
+                intersection_buffer[i].t_value < res) {
+                res = intersection_buffer[i].t_value;
                 result = &intersection_buffer[i];
             }
         }
@@ -19,13 +20,9 @@ namespace pathtracer {
 
     __host__ __device__ shape::shape(vec3 lower, vec3 upper, mat4 transformation_to_world): lower(lower), upper(upper), transformation_to_world(transformation_to_world) {
         bool success_flag;
-        mat4 transformation_to_object_copy = mat4{transformation_to_world};
-        transformation_to_object = transformation_to_object_copy.inverse(success_flag);
+        mat4 transformation_to_world_copy = mat4{transformation_to_world};
+        transformation_to_object = transformation_to_world_copy.inverse(success_flag);
         inverse_transpose = transformation_to_object.transpose();
-    }
-
-    __host__ __device__ vec3 shape::world_normal_at(const point& world_surface_point) const {
-        return inverse_transpose.transform_vector(local_normal_at(transformation_to_object.transform_vector(world_surface_point))).normalize();
     }
 
     __host__ __device__ sphere::sphere(const mat4& transformation_to_world): shape(transformation_to_world.transform_point({-1.f, -1.f, -1.f}),
@@ -62,8 +59,25 @@ namespace pathtracer {
         return local_surface_point;
     }
 
+    __host__ __device__ vec3 sphere::world_normal_at(const point& world_surface_point) const {
+        const point local_surface_point = transformation_to_object.transform_point(world_surface_point);
+        vector transformed_normal = inverse_transpose.transform_vector(local_surface_point);
+        return transformed_normal.normalize();
+    }
+
     __host__ __device__ shape_data& shape_data::operator=(const struct sphere& other) {
         sphere = other;
+
+        return *this;
+    }
+
+    __host__ __device__ phong::phong(const vec3& color, float ambient, float diffuse, float specular, float shininess): 
+        color(color), ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess) {}
+
+    __host__ __device__ light::light(const vec3& color): color(color) {};
+
+    __host__ __device__ mat_data& mat_data::operator=(const struct light& other) {
+        light = other;
 
         return *this;
     }

@@ -152,6 +152,22 @@ TEST_CASE("vec3 immutable operations", "[util]") {
 
         REQUIRE(res == true);
     }
+
+    SECTION("Reflect vector in normal") {
+        pathtracer::vec3 in1{1.f, -1.f, 0.f};
+        pathtracer::vector normal1{0.f, 1.f, 0.f};
+        pathtracer::vector expected1{1.f, 1.f, 0.f};
+
+        auto temp = in1.reflect(normal1);
+
+        REQUIRE((in1.reflect(normal1) == expected1) == true);
+
+        pathtracer::vec3 in2{0.f, -1.f, 0.f};
+        pathtracer::vector normal2{0.707106f, 0.707106f, 0.f};
+        pathtracer::vector expected2{1.f, 0.f, 0.f};
+
+        REQUIRE((in2.reflect(normal2) == expected2) == true);
+    }
 }
 
 TEST_CASE("vec3 mutable operations", "[util]") {

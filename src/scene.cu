@@ -17,7 +17,7 @@ namespace pathtracer {
         for (int i{0}; i < num_objects; ++i) {
             switch (objects[i].shape_t) {
                 case SPHERE:
-                    out_buffer[i] = {point_to_morton(objects[i].data.sphere.transformation_to_world.transform_point({0.f, 0.f, 0.f})),
+                    out_buffer[i] = {point_to_morton(objects[i].shape_d.sphere.transformation_to_world.transform_point({0.f, 0.f, 0.f})),
                                      i};
             }
         }
@@ -68,7 +68,7 @@ namespace pathtracer {
             int obj_index = sorted_morton_and_index[first].object_index;
             switch (objects[obj_index].shape_t) {
                 case SPHERE:
-                    return bvh_node::gen_leaf_node(obj_index, objects[obj_index].data.sphere.lower, objects[obj_index].data.sphere.upper, arena);
+                    return bvh_node::gen_leaf_node(obj_index, objects[obj_index].shape_d.sphere.lower, objects[obj_index].shape_d.sphere.upper, arena);
             }
         }   
 

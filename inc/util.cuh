@@ -14,6 +14,12 @@ namespace pathtracer {
 
     __host__ __device__ bool f_equal(float a, float b);
 
+    struct vec3;
+
+    using point = vec3;
+    using vector = vec3;
+    using color = vec3;
+
     struct vec3 {
         float x;
         float y;
@@ -68,11 +74,9 @@ namespace pathtracer {
         __host__ __device__ inline float min_component() {
             return (x < y) ? ((x < z) ? x : z) : ((y < z) ? y : z);
         }
-    };
 
-    using point = vec3;
-    using vector = vec3;
-    using color = vec3;
+        __host__ __device__ vector reflect(vector normal);
+    };
 
     __host__ __device__ unsigned char to_byte(float n);
 

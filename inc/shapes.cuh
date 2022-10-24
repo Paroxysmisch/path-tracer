@@ -23,7 +23,7 @@ namespace pathtracer {
 
         __host__ __device__ virtual vec3 local_normal_at(const point& local_surface_point) const = 0;
 
-        __host__ __device__ vec3 world_normal_at(const point& world_surface_point) const;
+        __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point) const = 0;
     };
 
     struct sphere : shape {
@@ -33,7 +33,9 @@ namespace pathtracer {
 
         __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
 
-        __host__ __device__ vec3 local_normal_at(const point& local_surface_point) const override;
+        __host__ __device__ virtual vec3 local_normal_at(const point& local_surface_point) const override;
+        
+        __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point) const override;
     };
 
     enum shape_type {
@@ -45,8 +47,35 @@ namespace pathtracer {
         sphere sphere;
     };
 
+    enum mat_type {
+        PHONG,
+        LIGHT
+    };
+
+    struct phong {
+        __host__ __device__ phong(const vec3& color, float ambient, float diffuse, float specular, float shininess);
+        vec3 color;
+        float ambient;
+        float diffuse;
+        float specular;
+        float shininess;
+    };
+
+    struct light {
+        __host__ __device__ light(const vec3& color);
+        vec3 color;
+    };
+
+    union mat_data {
+      phong phong;
+      __host__ __device__ mat_data& operator=(const light& other);
+      light light;
+    };
+
     struct object {
         shape_type shape_t;
-        shape_data data;
+        shape_data shape_d;
+        mat_type mat_t;
+        mat_data mat_d;
     };
 }
