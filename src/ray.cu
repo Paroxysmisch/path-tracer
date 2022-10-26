@@ -8,7 +8,7 @@ namespace pathtracer {
     __host__ __device__ ray::ray(const point& origin, const vector& direction): 
         o(origin), d(direction), d_inv({1.f / direction.x, 1.f / direction.y, 1.f / direction.z}) {}
 
-    __host__ __device__ bool ray::check_bvh_node_intersection(bvh_node* b) {
+    __host__ __device__ bool ray::check_bvh_node_intersection(bvh_node* b) const {
         // https://tavianator.com/2011/ray_box.html#:~:text=The%20fastest%20method%20for%20performing,remains%2C%20it%20intersected%20the%20box
         // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
         // https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
@@ -32,7 +32,7 @@ namespace pathtracer {
         return (tmin.max_component() <= tmax.min_component()) && tmin.max_component() >= 0.f;
     }
 
-    __host__ __device__  int ray::find_intersections(bvh_node* root, int* collision_buffer) {
+    __host__ __device__  int ray::find_intersections(bvh_node* root, int* collision_buffer) const {
         bvh_node* stack[64];
         bvh_node** stack_ptr = stack;
         *stack_ptr = nullptr;
@@ -94,7 +94,7 @@ namespace pathtracer {
         return num_collisions;
     }
 
-    __host__ __device__ point ray::shoot_distance(float t) {
+    __host__ __device__ point ray::shoot_distance(float t) const {
         return o + (d * t);
     }
 

@@ -19,6 +19,7 @@ set(path_tracer_sources
     shapes.cu
     scene.cu
     phong.cu
+    world.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
@@ -41,6 +42,7 @@ set(test_sources
     shapes.cu
     scene.cu
     phong.cu
+    world.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
