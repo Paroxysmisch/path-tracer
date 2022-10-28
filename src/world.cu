@@ -37,11 +37,18 @@ namespace pathtracer {
                 surface_normal = intersected_object.shape_d.sphere.world_normal_at(surface_point);
                 break;
         }
+        vector eye = (-r.d).normalize();
+        bool inside = false;
+        if (surface_normal * eye < 0) {
+            inside = true;
+            surface_normal = -surface_normal;
+        }
         return {
             {intersection.t_value, intersection.object_index},
             surface_point,
-            (-r.d).normalize(),
-            surface_normal
+            eye,
+            surface_normal,
+            inside
         };
     }
 

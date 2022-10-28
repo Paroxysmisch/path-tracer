@@ -181,7 +181,7 @@ namespace pathtracer {
 
         __host__ __device__ mat4& operator=(const mat4& other);
 
-        __host__ __device__ mat4 inverse(bool& success_flag);
+        __host__ __device__ mat4 inverse(bool& success_flag) const;
 
         __host__ __device__ static mat4 get_translation(float x, float y, float z);
 

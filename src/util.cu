@@ -206,8 +206,8 @@ namespace pathtracer {
         return *this;
     }
 
-    __host__ __device__ mat4 mat4::inverse(bool& success_flag) {
-        float* m = m_data;
+    __host__ __device__ mat4 mat4::inverse(bool& success_flag) const {
+        const float* m = m_data;
 
         float inv_temp[16];
 

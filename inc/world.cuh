@@ -10,6 +10,7 @@ namespace pathtracer {
         point surface_point;
         vector eye_vector;
         vector surface_normal;
+        bool is_inside;
     };
 
     struct world {
