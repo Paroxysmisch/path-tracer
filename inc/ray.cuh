@@ -6,9 +6,9 @@
 namespace pathtracer {
 
     struct ray {
-        const point o;
-        const vector d;
-        const vec3 d_inv;
+        point o;
+        vector d;
+        vec3 d_inv;
 
         __host__ __device__ ray(const point& o, const vector& d);
 

@@ -21,6 +21,7 @@ set(path_tracer_sources
     phong.cu
     world.cu
     camera.cu
+    brdf.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
@@ -45,6 +46,7 @@ set(test_sources
     phong.cu
     world.cu
     camera.cu
+    brdf.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
