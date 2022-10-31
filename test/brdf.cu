@@ -73,15 +73,18 @@ __global__ void constant_brdf_test(pathtracer::canvas<1000, 1000> c, pathtracer:
             pathtracer::vec3 color{0.f, 0.f, 0.f};
 
             for (int k{0}; k < num_samples; ++k) {
-                pathtracer::vec3 sample_color{0.f, 0.f, 0.f};
                 pathtracer::ray ray = camera.gen_ray_for_pixel(i, j);
-                pathtracer::vec3 BRDF_weighting{1.f, 1.f, 1.f};
                 bool success_flag{false};
+                pathtracer::vec3 multiplier{1.f, 1.f, 1.f};
+                multiplier *= pathtracer::one_over_pi;
 
                 for (int l{0}; l < max_depth; ++l) {
                     pathtracer::computations comp = world.intersect_world(ray, success_flag, collision_buffer, intersection_buffer);
 
-                    if (!success_flag) break;
+                    if (!success_flag) {
+                        multiplier &= {0.f, 0.f, 0.f};
+                        break;
+                    }
 
                     pathtracer::object& object = world.objects[comp.intersection.object_index];
 
@@ -97,19 +100,21 @@ __global__ void constant_brdf_test(pathtracer::canvas<1000, 1000> c, pathtracer:
 
                     ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), new_direction.normalize());
 
-                    if (object.mat_t == pathtracer::LIGHT) {
-                        sample_color += {1.f, 1.f, 1.f};
-                        continue;
-                    }
-
                     float cos_theta = ray.d * comp.surface_normal;
 
-                    sample_color += BRDF_weighting & (object.mat_d.phong.color * object.mat_d.phong.diffuse) * cos_theta;
-                    
-                    BRDF_weighting = BRDF_weighting * cos_theta;
+                    if (object.mat_t == pathtracer::LIGHT) {
+                        multiplier &= {500.f, 500.f, 500.f};
+                        break;
+                    }
+
+                    // sample_color += BRDF_weighting & (object.mat_d.phong.color * object.mat_d.phong.ambient) * (cos_theta / pdf) * pathtracer::one_over_pi;
+
+                    color += multiplier & (object.mat_d.phong.color * object.mat_d.phong.ambient) * cos_theta;
+
+                    multiplier &= (object.mat_d.phong.color * object.mat_d.phong.diffuse) * (cos_theta / pdf) * pathtracer::one_over_pi;
                 }
 
-                color += sample_color;
+                color += multiplier;
             }
 
             color /= num_samples;
@@ -155,7 +160,11 @@ TEST_CASE("Full brdf renders") {
              pathtracer::PHONG,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
             {pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(-5.f, 0.f, -5.f)),
+             pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
+             pathtracer::LIGHT,
+             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
+            {pathtracer::SPHERE,
+             pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 0.f, -10.f)),
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)}
         }, blocks, threads);
