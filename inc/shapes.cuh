@@ -27,7 +27,7 @@ namespace pathtracer {
     };
 
     struct sphere : shape {
-        __host__ __device__ sphere(const mat4& transformation_to_world);
+        __host__ __device__ sphere(const mat4& transformation_to_world = mat4::get_identity());
 
         // __host__ __device__ sphere& operator=(const sphere& other);
 
@@ -49,7 +49,8 @@ namespace pathtracer {
 
     enum mat_type {
         PHONG,
-        LIGHT
+        LIGHT,
+        MICROFACET
     };
 
     struct phong {
@@ -61,6 +62,14 @@ namespace pathtracer {
         float shininess;
     };
 
+    struct microfacet {
+        vec3 color;
+        vec3 emission;
+        float metalness;
+        float roughness;
+        float transmissiveness;
+    };
+
     struct light {
         __host__ __device__ light(const vec3& color);
         vec3 color;
@@ -68,6 +77,7 @@ namespace pathtracer {
 
     union mat_data {
       phong phong;
+      microfacet microfacet;
       __host__ __device__ mat_data& operator=(const light& other);
       light light;
     };

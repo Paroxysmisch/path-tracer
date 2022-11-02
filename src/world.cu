@@ -6,7 +6,7 @@
 
 namespace pathtracer {
 
-    world::world(const std::initializer_list<const object> l, dim3 blocks, dim3 threads):
+    world::world(const std::initializer_list<object> l, dim3 blocks, dim3 threads):
         num_objects(l.size()), arena(new bvh_arena(l.size())) {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
@@ -22,6 +22,28 @@ namespace pathtracer {
             }
             objects[current_object].mat_t = it->mat_t;
             objects[current_object].mat_d = it->mat_d;
+            ++current_object;
+        }
+
+        bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
+    }
+
+    world::world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads):
+        num_objects(l.size()), arena(new bvh_arena(l.size())) {
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
+
+        int current_object{0};
+        for (auto it = l.begin(); it < l.end(); ++it) {
+            objects[current_object].shape_t = (*it)->shape_t;
+            switch ((*it)->shape_t) {
+                case SPHERE:
+                    objects[current_object].shape_d.sphere = (*it)->shape_d.sphere;
+                    break;
+            }
+            objects[current_object].mat_t = (*it)->mat_t;
+            objects[current_object].mat_d = (*it)->mat_d;
             ++current_object;
         }
 

@@ -66,7 +66,7 @@ __global__ void constant_brdf_test(pathtracer::canvas<1000, 1000> c, pathtracer:
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 1000;
+    constexpr int num_samples = 100;
 
     while (i < 1000) {
         while (j < 1000) {
@@ -90,28 +90,38 @@ __global__ void constant_brdf_test(pathtracer::canvas<1000, 1000> c, pathtracer:
 
                     float u = curand_uniform(state);
                     float v = curand_uniform(state);
-                    float pdf;
+                    // float pdf;
 
-                    pathtracer::point new_direction = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+                    // pathtracer::point new_direction = pathtracer::cosine_sample_hemisphere(u, v, pdf);
 
-                    pathtracer::quaternion q_to_world = pathtracer::quaternion::get_rotation_from_z_axis(comp.surface_normal.normalize());
+                    // pathtracer::quaternion q_to_world = pathtracer::quaternion::get_rotation_from_z_axis(comp.surface_normal.normalize());
 
-                    new_direction = pathtracer::quaternion::rotate_vector_by_quaternion(new_direction, q_to_world);
+                    // new_direction = pathtracer::quaternion::rotate_vector_by_quaternion(new_direction, q_to_world);
 
-                    ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), new_direction.normalize());
+                    // ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), new_direction.normalize());
 
-                    float cos_theta = ray.d * comp.surface_normal;
+                    // float cos_theta = ray.d * comp.surface_normal;
 
                     if (object.mat_t == pathtracer::LIGHT) {
                         multiplier &= {500.f, 500.f, 500.f};
                         break;
                     }
 
-                    // sample_color += BRDF_weighting & (object.mat_d.phong.color * object.mat_d.phong.ambient) * (cos_theta / pdf) * pathtracer::one_over_pi;
+                    // color += multiplier & (object.mat_d.phong.color * object.mat_d.phong.ambient) * cos_theta;
 
-                    color += multiplier & (object.mat_d.phong.color * object.mat_d.phong.ambient) * cos_theta;
+                    // multiplier &= (object.mat_d.phong.color * object.mat_d.phong.diffuse) * (cos_theta / pdf) * pathtracer::one_over_pi;
 
-                    multiplier &= (object.mat_d.phong.color * object.mat_d.phong.diffuse) * (cos_theta / pdf) * pathtracer::one_over_pi;
+                    pathtracer::vector out_ray_direction;
+
+                    pathtracer::vector out_sample_weight;
+
+                    bool eval_successful = pathtracer::eval_brdf(u, v, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, object.mat_d.microfacet);
+
+                    if (!eval_successful) break;
+
+                    multiplier &= out_sample_weight;
+
+                    ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), out_ray_direction);
                 }
 
                 color += multiplier;
@@ -138,35 +148,109 @@ TEST_CASE("Full brdf renders") {
 
         pathtracer::camera camera(1000, 1000, pathtracer::pi / 2.f, {0.f, 0.f, -10.f}, {0.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, pathtracer::mat4::get_rotation_z(pathtracer::pi / 4.f));
 
-        pathtracer::world w({
-            {pathtracer::SPHERE, 
+        // pathtracer::world w({
+        //     {pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.25f, 0.25f, 0.95f}, 0.1f, 0.9f, 0.9f, 200)},
+        //     {pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 0.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.35f, 0.25f, 0.75f}, 0.1f, 0.9f, 0.9f, 200)},
+        //     {pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, -1.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.1f, 0.9f, 0.9f, 100)},
+        //     {pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
+        //     {pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(2.f, 0.f, 1.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
+        //     {pathtracer::SPHERE,
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
+        //      pathtracer::LIGHT,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
+        //     {pathtracer::SPHERE,
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 0.f, -10.f)),
+        //      pathtracer::LIGHT,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)}
+        // }, blocks, threads);
+
+        // pathtracer::object obj0{pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.25f, 0.25f, 0.95f}, 0.1f, 0.9f, 0.9f, 200)};
+        // pathtracer::object obj1{pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 0.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.35f, 0.25f, 0.75f}, 0.1f, 0.9f, 0.9f, 200)};
+        // pathtracer::object obj2{pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, -1.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.1f, 0.9f, 0.9f, 100)};
+        // pathtracer::object obj3{pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+        // pathtracer::object obj4{pathtracer::SPHERE, 
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(2.f, 0.f, 1.f)),
+        //      pathtracer::PHONG,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+        // pathtracer::object obj5{pathtracer::SPHERE,
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
+        //      pathtracer::LIGHT,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+        // pathtracer::object obj6{pathtracer::SPHERE,
+        //      pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 0.f, -10.f)),
+        //      pathtracer::LIGHT,
+        //      pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+
+        pathtracer::object obj0{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
-             pathtracer::PHONG,
-             pathtracer::phong({0.25f, 0.25f, 0.95f}, 0.1f, 0.9f, 0.9f, 200)},
-            {pathtracer::SPHERE, 
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+
+        pathtracer::object obj1{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 0.f)),
-             pathtracer::PHONG,
-             pathtracer::phong({0.35f, 0.25f, 0.75f}, 0.1f, 0.9f, 0.9f, 200)},
-            {pathtracer::SPHERE, 
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        
+        pathtracer::object obj2{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, -1.f)),
-             pathtracer::PHONG,
-             pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.1f, 0.9f, 0.9f, 100)},
-            {pathtracer::SPHERE, 
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+
+        pathtracer::object obj3{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),
-             pathtracer::PHONG,
-             pathtracer::phong({0.75f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
-            {pathtracer::SPHERE, 
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj3.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+
+        pathtracer::object obj4{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(2.f, 0.f, 1.f)),
-             pathtracer::PHONG,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
-            {pathtracer::SPHERE,
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj4.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+
+        pathtracer::object obj5{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
              pathtracer::LIGHT,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)},
-            {pathtracer::SPHERE,
+             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+
+        pathtracer::object obj6{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 0.f, -10.f)),
              pathtracer::LIGHT,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)}
+             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+
+
+        pathtracer::world w({
+            &obj0, &obj1, &obj2, &obj3, &obj4, &obj5, &obj6
         }, blocks, threads);
 
         curandState* d_states;

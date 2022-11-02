@@ -21,7 +21,9 @@ namespace pathtracer {
         int* collision_buffer;
         pathtracer::intersection* intersection_buffer;
 
-        world(const std::initializer_list<const object> l, dim3 blocks, dim3 threads);
+        world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
+
+        world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads);
 
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 
