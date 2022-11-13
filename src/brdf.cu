@@ -74,6 +74,7 @@ namespace pathtracer {
         if (f_equal(alpha, 0.f)) {
             half_local = {0.f, 0.f, 0.f};
         } // Need to implement
+        return {0.f, 0.f, 0.f};
     }
 
     // Samples points oriented along +Z axis

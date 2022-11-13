@@ -134,6 +134,85 @@ namespace pathtracer {
         else return (unsigned char) 255.99f * n;
     }
 
+    __host__ canvas::canvas(const int height, const int width): m_owner(true), m_height(height), m_width(width) {
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&m_data), 
+                                           sizeof(vec3) * m_height * m_width) );
+
+        for (size_t i{0}; i < m_height * m_width; ++i) {
+            (m_data)[i] = {0, 0, 0};
+        }
+    }
+
+    __host__ canvas::canvas(canvas& other): m_owner(false), m_data(other.m_data), m_height(other.m_height), m_width(other.m_width) {}
+
+    __host__ canvas::~canvas() {
+        if (m_owner) {
+            cudaFree(m_data);
+        }
+    }
+
+    __host__ __device__ canvas& canvas::write_pixel(int y, int x, const vec3& data) {
+            m_data[y * m_width + x] = data;
+            return *this;
+    }
+
+    __host__ void canvas::export_as_PPM(const std::string& filename) const {
+        std::ofstream file{filename};
+
+        file << "P3" << std::endl
+             << m_width << " " << m_height << std::endl
+             << 255 << std::endl;
+
+        constexpr size_t max_per_line{64};
+
+        size_t counter{0};
+
+        for (size_t i{0}; i < m_height; ++i) {
+            for (size_t j{0}; j < m_width; ++j) {
+                if (counter >= max_per_line) {
+                    file << std::endl;
+                    counter = 0;
+                }
+
+                const vec3& color = m_data[i * m_width + j];
+
+                file << static_cast<int>(to_byte(color.x)) << " "
+                     << static_cast<int>(to_byte(color.y)) << " "
+                     << static_cast<int>(to_byte(color.z)) << " ";
+
+                ++counter;
+            }
+        }
+
+        // PPMs end with a newline character
+        file << std::endl;
+
+        file.close();
+    }
+
+    __host__ bool canvas::export_as_EXR(const std::string& filename) const {
+        float* data = new float[m_height * m_width * 3];
+
+        for (int i{0}; i < m_height * m_width; ++i) {
+            int index = i * 3;
+            data[index] = m_data[i].x;
+            data[index + 1] = m_data[i].y;
+            data[index + 2] = m_data[i].z;
+        }
+
+        const char* err = new char[64];
+
+        bool res = SaveEXR(data, m_width, m_height, 3, 0, filename.c_str(), &err);
+
+        if (res != TINYEXR_SUCCESS)
+            std::cout << err << std::endl;
+
+        delete[] data;
+        delete[] err;
+
+        return res;
+    }
+
     __host__ __device__ mat4::mat4() {}
 
     __host__ __device__ mat4::mat4(float _00, float _01, float _02, float _03,

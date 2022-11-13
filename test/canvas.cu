@@ -6,7 +6,7 @@
 #include "shapes.cuh"
 
 TEST_CASE("Canvas", "[util]") {
-    pathtracer::canvas<pathtracer::height, pathtracer::width> c{};
+    pathtracer::canvas c{pathtracer::height, pathtracer::width};
 
     SECTION("Byte conversion") {
         float n = 0.25;
@@ -34,7 +34,7 @@ TEST_CASE("Canvas", "[util]") {
     }
 }
 
-__global__ void canvas_test(pathtracer::canvas<pathtracer::height, pathtracer::width> c) {
+__global__ void canvas_test(pathtracer::canvas c) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -56,7 +56,7 @@ __global__ void canvas_test(pathtracer::canvas<pathtracer::height, pathtracer::w
 }
 
 TEST_CASE("Canvas on GPU", "[util]") {
-    pathtracer::canvas<pathtracer::height, pathtracer::width> c{};
+    pathtracer::canvas c{pathtracer::height, pathtracer::width};
     pathtracer::vec3 expected{0.75f, 0.25f, 0.f};
 
     dim3 blocks(16, 16);
@@ -72,7 +72,7 @@ TEST_CASE("Canvas on GPU", "[util]") {
     REQUIRE(res == true);
 }
 
-__global__ void shadow_test(pathtracer::canvas<1000, 1000> c, pathtracer::sphere sphere) {
+__global__ void shadow_test(pathtracer::canvas c, pathtracer::sphere sphere) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -119,7 +119,7 @@ __global__ void shadow_test(pathtracer::canvas<1000, 1000> c, pathtracer::sphere
 
 TEST_CASE("Shadow of sphere", "[util]") {
     constexpr int canvas_pixels = 1000;
-    pathtracer::canvas<canvas_pixels, canvas_pixels> c{};
+    pathtracer::canvas c{canvas_pixels, canvas_pixels};
     pathtracer::vec3 expected{0.75f, 0.25f, 0.f};
 
     dim3 blocks(16, 16);
@@ -131,7 +131,7 @@ TEST_CASE("Shadow of sphere", "[util]") {
 
     checkCudaErrors( cudaDeviceSynchronize() );
 
-    bool res = (c.m_data[(1000 / 2) * 1000+ (1000 / 2)] == expected);
+    bool res = (c.m_data[(1000 / 2) * 1000 + (1000 / 2)] == expected);
 
     c.export_as_PPM("Shadow_Test_GPU.ppm");
 

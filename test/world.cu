@@ -6,7 +6,7 @@
 #include "shapes.cuh"
 #include "phong.cuh"
 
-__global__ void world_phong_test(pathtracer::canvas<1000, 1000> c, pathtracer::world world, pathtracer::object* light) {
+__global__ void world_phong_test(pathtracer::canvas c, pathtracer::world world, pathtracer::object* light) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -64,7 +64,7 @@ __global__ void world_phong_test(pathtracer::canvas<1000, 1000> c, pathtracer::w
 TEST_CASE("Full world renders") {
     SECTION("Phong") {
         constexpr int canvas_pixels = 1000;
-        pathtracer::canvas<canvas_pixels, canvas_pixels> c{};
+        pathtracer::canvas c{canvas_pixels, canvas_pixels};
 
         dim3 blocks(16, 16);
         dim3 threads(16, 16);

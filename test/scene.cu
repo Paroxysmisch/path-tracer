@@ -7,7 +7,7 @@
 #include "util.cuh"
 #include "phong.cuh"
 
-__global__ void bounding_box_test(pathtracer::canvas<1000, 1000> c, pathtracer::object* objects, pathtracer::bvh_node* root) {
+__global__ void bounding_box_test(pathtracer::canvas c, pathtracer::object* objects, pathtracer::bvh_node* root) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -56,7 +56,7 @@ __global__ void bounding_box_test(pathtracer::canvas<1000, 1000> c, pathtracer::
     }
 }
 
-__global__ void multiple_shadow_test(pathtracer::canvas<1000, 1000> c, pathtracer::object* objects, pathtracer::bvh_node* root) {
+__global__ void multiple_shadow_test(pathtracer::canvas c, pathtracer::object* objects, pathtracer::bvh_node* root) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -119,7 +119,7 @@ __global__ void multiple_shadow_test(pathtracer::canvas<1000, 1000> c, pathtrace
     }
 }
 
-__global__ void phong_test(pathtracer::canvas<1000, 1000> c, pathtracer::object* objects, pathtracer::bvh_node* root, pathtracer::object* light) {
+__global__ void phong_test(pathtracer::canvas c, pathtracer::object* objects, pathtracer::bvh_node* root, pathtracer::object* light) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -203,7 +203,7 @@ TEST_CASE("BVH construction from objects", "[scene, acceleron_datastructures, sh
 
     SECTION("Multiple objects bounding box render GPU") {
         constexpr int canvas_pixels = 1000;
-        pathtracer::canvas<canvas_pixels, canvas_pixels> c{};
+        pathtracer::canvas c{canvas_pixels, canvas_pixels};
 
         constexpr int num_objects = 2;
 
@@ -236,7 +236,7 @@ TEST_CASE("BVH construction from objects", "[scene, acceleron_datastructures, sh
 
     SECTION("Multiple objects shadow render GPU") {
         constexpr int canvas_pixels = 1000;
-        pathtracer::canvas<canvas_pixels, canvas_pixels> c{};
+        pathtracer::canvas c{canvas_pixels, canvas_pixels};
 
         constexpr int num_objects = 5;
 
@@ -286,7 +286,7 @@ TEST_CASE("BVH construction from objects", "[scene, acceleron_datastructures, sh
 TEST_CASE("Full renders") {
     SECTION("Phong") {
         constexpr int canvas_pixels = 1000;
-        pathtracer::canvas<canvas_pixels, canvas_pixels> c{};
+        pathtracer::canvas c{canvas_pixels, canvas_pixels};
 
         constexpr int num_objects = 5;
 
