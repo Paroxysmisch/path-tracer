@@ -32,6 +32,7 @@ set(path_tracer_sources
     world.cu
     camera.cu
     brdf.cu
+    denoise.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")

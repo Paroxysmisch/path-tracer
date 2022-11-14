@@ -10,6 +10,7 @@
 #include "shapes.cuh"
 #include "phong.cuh"
 #include "camera.cuh"
+#include "denoise.cuh"
 
 // __device__ pathtracer::vec3 trace_path(pathtracer::ray ray, int depth, pathtracer::world world, int* collision_buffer, pathtracer::intersection* intersection_buffer, curandState* state) {
 //     if (depth <= 0) return {0.f, 0.f, 0.f};
@@ -263,5 +264,6 @@ TEST_CASE("Full brdf renders") {
 
         c.export_as_PPM("Constant_BRDF_Test_GPU.ppm");
         c.export_as_EXR("Constant_BRDF_Test_GPU.exr");
+        pathtracer::denoise(canvas_pixels, canvas_pixels, "Constant_BRDF_Test_GPU.exr", w, camera, "Constant_BRDF_Test_GPU_denoised.exr");
     }
 }
