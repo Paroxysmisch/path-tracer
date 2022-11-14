@@ -81,6 +81,7 @@ __global__ void constant_brdf_test(pathtracer::canvas c, pathtracer::world world
                 bool success_flag{false};
                 pathtracer::vec3 multiplier{1.f, 1.f, 1.f};
                 multiplier *= pathtracer::one_over_pi;
+                float current_refractive_index = 1.f;
 
                 for (int l{0}; l < max_depth; ++l) {
                     pathtracer::computations comp = world.intersect_world(ray, success_flag, collision_buffer, intersection_buffer);
@@ -94,6 +95,7 @@ __global__ void constant_brdf_test(pathtracer::canvas c, pathtracer::world world
 
                     float u = curand_uniform(state);
                     float v = curand_uniform(state);
+                    float t = curand_uniform(state);
                     // float pdf;
 
                     // pathtracer::point new_direction = pathtracer::cosine_sample_hemisphere(u, v, pdf);
@@ -119,13 +121,17 @@ __global__ void constant_brdf_test(pathtracer::canvas c, pathtracer::world world
 
                     pathtracer::vector out_sample_weight;
 
-                    bool eval_successful = pathtracer::eval_brdf(u, v, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, object.mat_d.microfacet);
+                    bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
 
                     if (!eval_successful) break;
 
                     multiplier &= out_sample_weight;
 
-                    ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), out_ray_direction);
+                    if ((0.f < t && t <= object.mat_d.microfacet.transmissiveness)) {
+                        ray = pathtracer::ray(comp.surface_point + ((-comp.surface_normal) * 0.01f), out_ray_direction);
+                    } else {
+                        ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), out_ray_direction);
+                    }
                 }
 
                 color += multiplier;
@@ -216,31 +222,31 @@ TEST_CASE("Full brdf renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
 
         pathtracer::object obj1{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 0.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 4.f};
         
         pathtracer::object obj2{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, -1.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 1.f, 4.f};
 
         pathtracer::object obj3{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj3.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        obj3.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
 
         pathtracer::object obj4{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(2.f, 0.f, 1.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj4.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f};
+        obj4.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
 
         pathtracer::object obj5{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),

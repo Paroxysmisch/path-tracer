@@ -61,11 +61,14 @@ namespace pathtracer {
     __host__ __device__ point cosine_sample_hemisphere(float u, float v, float& out_pdf);
 
     __device__ bool eval_brdf(float u, 
-                              float v, 
+                              float v,
+                              float t,
+                              float in_refractive_index, 
                               vector normal, 
                               vector view, 
                               vector& out_ray_direction, 
                               vec3& out_sample_weight,
+                              float& out_refractive_index,
                               const microfacet& material);
 
 }

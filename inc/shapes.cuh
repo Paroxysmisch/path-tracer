@@ -68,6 +68,7 @@ namespace pathtracer {
         float metalness;
         float roughness;
         float transmissiveness;
+        float refractive_index;
     };
 
     struct light {
