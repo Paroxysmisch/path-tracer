@@ -67,14 +67,17 @@ __global__ void constant_brdf_test(pathtracer::canvas c, pathtracer::world world
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 100;
+    constexpr int num_samples = 1000;
 
     while (i < 1000) {
         while (j < 1000) {
             pathtracer::vec3 color{0.f, 0.f, 0.f};
 
             for (int k{0}; k < num_samples; ++k) {
-                pathtracer::ray ray = camera.gen_ray_for_pixel(i, j);
+                // floats a and b for anti-aliasing
+                float a = curand_uniform(state);
+                float b = curand_uniform(state);
+                pathtracer::ray ray = camera.gen_ray_for_pixel(i, j, a, b);
                 bool success_flag{false};
                 pathtracer::vec3 multiplier{1.f, 1.f, 1.f};
                 multiplier *= pathtracer::one_over_pi;

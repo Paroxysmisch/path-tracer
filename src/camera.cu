@@ -49,9 +49,9 @@ namespace pathtracer {
         return orientation * (additional_transformation * mat4::get_translation(-from.x, -from.y, -from.z));
     }
 
-    __host__ __device__ ray camera::gen_ray_for_pixel(int i, int j) {
-        float y_offset = (i + 0.5f) * pixel_size;
-        float x_offset = (j + 0.5f) * pixel_size;
+    __host__ __device__ ray camera::gen_ray_for_pixel(int i, int j, float u, float v) {
+        float y_offset = (i + u) * pixel_size;
+        float x_offset = (j + v) * pixel_size;
 
         float world_y = half_height - y_offset;
         float world_x = half_width - x_offset;
