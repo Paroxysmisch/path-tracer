@@ -36,7 +36,7 @@ namespace pathtracer {
         return (tmin.max_component() <= tmax.min_component()) && tmin.max_component() >= 0.f;
     }
 
-    __host__ __device__  int ray::find_intersections(bvh_node* root, int* collision_buffer) const {
+    __host__ __device__ int ray::find_intersections(bvh_node* root, int* collision_buffer) const {
         bvh_node* stack[64];
         bvh_node** stack_ptr = stack;
         *stack_ptr = nullptr;
@@ -49,6 +49,11 @@ namespace pathtracer {
         if (root->is_leaf() && check_bvh_node_intersection(root)) {
             collision_buffer[num_collisions] = root->object_index;
             ++num_collisions;
+            return num_collisions;
+        }
+
+        if (root->is_leaf() && !check_bvh_node_intersection(root)) {
+            return num_collisions;
         }
 
         do {

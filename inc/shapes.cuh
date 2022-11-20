@@ -38,7 +38,19 @@ namespace pathtracer {
         __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point) const override;
     };
 
+    __host__ __device__ point triangle_get_lower(const point& p1, const point& p2, const point& p3);
+
+    __host__ __device__ point triangle_get_upper(const point& p1, const point& p2, const point& p3);
+
     struct triangle : shape {
+        // Two edge vectors
+        vector p1;
+        vector p2;
+        vector p3;
+        vector e1;
+        vector e2;
+        vector normal;
+
         __host__ __device__ triangle(const point& p1, const point& p2, const point& p3);
 
         __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;

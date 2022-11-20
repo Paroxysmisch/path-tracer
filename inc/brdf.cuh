@@ -37,10 +37,6 @@ namespace pathtracer {
 
     __host__ __device__ float linear_interpolate(float begin, float end, float amount);
 
-    __host__ __device__ float maxf(float a, float b);
-
-    __host__ __device__ float minf(float a, float b);
-
     __host__ __device__ vec3 base_color_to_specular_f0(const vec3& color, float metalness);
 
     __host__ __device__ vec3 base_color_to_diffuse_reflectance(const vec3& color, float metalness);

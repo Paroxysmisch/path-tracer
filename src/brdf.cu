@@ -15,14 +15,6 @@ namespace pathtracer {
         return begin + (end - begin) * amount;
     }
 
-    __host__ __device__ float maxf(float a, float b) {
-        return a >= b ? a : b;
-    }
-
-    __host__ __device__ float minf(float a, float b) {
-        return a <= b ? a : b;
-    }
-
     __host__ __device__ vec3 base_color_to_specular_f0(const vec3& color, float metalness) {
         return linear_interpolate(vec3(min_dielectrics_f0, min_dielectrics_f0, min_dielectrics_f0), color, metalness);
     }

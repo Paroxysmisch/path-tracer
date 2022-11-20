@@ -19,7 +19,14 @@ namespace pathtracer {
                 case SPHERE:
                     out_buffer[i] = {point_to_morton(objects[i].shape_d.sphere.transformation_to_world.transform_point({0.f, 0.f, 0.f})),
                                      i};
-            }
+                    break;
+                case TRIANGLE:
+                    // TODO:
+                    // Need to take average here
+                    out_buffer[i] = {point_to_morton(objects[i].shape_d.triangle.p1),
+                                     i};
+                    break;
+                }
         }
 
         qsort(out_buffer, num_objects, sizeof(morton_and_index), compare);
@@ -69,7 +76,9 @@ namespace pathtracer {
             switch (objects[obj_index].shape_t) {
                 case SPHERE:
                     return bvh_node::gen_leaf_node(obj_index, objects[obj_index].shape_d.sphere.lower, objects[obj_index].shape_d.sphere.upper, arena);
-            }
+                case TRIANGLE:
+                    return bvh_node::gen_leaf_node(obj_index, objects[obj_index].shape_d.triangle.lower, objects[obj_index].shape_d.triangle.upper, arena);
+                }
         }   
 
         int split = find_split(sorted_morton_and_index, first, last);

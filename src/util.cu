@@ -128,6 +128,10 @@ namespace pathtracer {
         return *this - (normal * 2 * (*this * normal));
     }
 
+    __host__ std::ostream &operator<<(std::ostream &os, const vec3& vec_3) {
+        return os << "(" << vec_3.x << ", " << vec_3.y << ", " << vec_3.z << ")";
+    }
+
     __host__ __device__ unsigned char to_byte(float n) {
         if (n < 0.f) return 0;
         else if (n >= 1.f) return 255;
@@ -554,6 +558,14 @@ namespace pathtracer {
 
     __host__ __device__ quaternion quaternion::get_inverse_rotation(const quaternion& q) {
         return quaternion(q.w, -q.ijk);
+    }
+
+    __host__ __device__ float maxf(float a, float b) {
+        return a >= b ? a : b;
+    }
+
+    __host__ __device__ float minf(float a, float b) {
+        return a <= b ? a : b;
     }
 
 }

@@ -81,6 +81,8 @@ namespace pathtracer {
         __host__ __device__ vector reflect(vector normal);
     };
 
+    __host__ std::ostream &operator<<(std::ostream &os, const vec3& vec_3);
+
     __host__ __device__ unsigned char to_byte(float n);
 
     struct canvas {
@@ -170,5 +172,9 @@ namespace pathtracer {
 
         __host__ __device__ static quaternion get_inverse_rotation(const quaternion& q);
     };
+
+    __host__ __device__ float maxf(float a, float b);
+
+    __host__ __device__ float minf(float a, float b);
 
 }

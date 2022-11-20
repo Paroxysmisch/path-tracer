@@ -258,9 +258,16 @@ TEST_CASE("Full brdf renders") {
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
 
+        pathtracer::object obj7{pathtracer::TRIANGLE,
+             pathtracer::sphere(pathtracer::mat4::get_identity()),
+             pathtracer::MICROFACET,
+             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+        obj7.shape_d.triangle = pathtracer::triangle({-1.f, 0.f, -3.f}, {-1.f, 0.5f, -3.f}, {0.5f, 0.25f, -3.f});
+        obj7.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
+
 
         pathtracer::world w({
-            &obj0, &obj1, &obj2, &obj3, &obj4, &obj5, &obj6
+            &obj0, &obj1, &obj2, &obj3, &obj4, &obj5, &obj6, &obj7
         }, blocks, threads);
 
         curandState* d_states;

@@ -6,6 +6,7 @@
 
 namespace pathtracer {
 
+    // Do not use this with triangles!
     world::world(const std::initializer_list<object> l, dim3 blocks, dim3 threads):
         num_objects(l.size()), arena(new bvh_arena(l.size())) {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
@@ -41,7 +42,10 @@ namespace pathtracer {
                 case SPHERE:
                     objects[current_object].shape_d.sphere = (*it)->shape_d.sphere;
                     break;
-            }
+                case TRIANGLE:
+                    objects[current_object].shape_d.triangle = (*it)->shape_d.triangle;
+                    break;
+                }
             objects[current_object].mat_t = (*it)->mat_t;
             objects[current_object].mat_d = (*it)->mat_d;
             ++current_object;
@@ -58,7 +62,10 @@ namespace pathtracer {
             case SPHERE:
                 surface_normal = intersected_object.shape_d.sphere.world_normal_at(surface_point);
                 break;
-        }
+            case TRIANGLE:
+                surface_normal = intersected_object.shape_d.triangle.world_normal_at(surface_point);
+                break;
+            }
         vector eye = (-r.d).normalize();
         bool inside = false;
         if (surface_normal * eye < 0) {
@@ -89,7 +96,10 @@ namespace pathtracer {
                     case SPHERE:
                         num_intersections = objects[object_index].shape_d.sphere.find_intersections(r, intersection_buffer_ptr, object_index);
                         break;
-                }
+                    case TRIANGLE:
+                        num_intersections = objects[object_index].shape_d.triangle.find_intersections(r, intersection_buffer, object_index);
+                        break;
+                    }
 
                 intersection_buffer_ptr += num_intersections;
                 intersection_buffer_size += num_intersections;
