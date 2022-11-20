@@ -234,7 +234,7 @@ TEST_CASE("Full brdf renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, -1.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 1.f, 4.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.f, 0.85f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.95f, 4.f};
 
         pathtracer::object obj3{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),

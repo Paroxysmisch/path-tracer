@@ -35,13 +35,19 @@ namespace pathtracer {
 
     __host__ __device__ vec3 linear_interpolate(const vec3& begin, const vec3& end, float amount);
 
+    __host__ __device__ float linear_interpolate(float begin, float end, float amount);
+
+    __host__ __device__ float maxf(float a, float b);
+
+    __host__ __device__ float minf(float a, float b);
+
     __host__ __device__ vec3 base_color_to_specular_f0(const vec3& color, float metalness);
 
     __host__ __device__ vec3 base_color_to_diffuse_reflectance(const vec3& color, float metalness);
 
     __host__ __device__ vec3 eval_fresnel(const vec3& f0, float f90, float n_dot_s);
 
-    __device__ float shadowed_f90(vec3 f0);
+    __host__ __device__ float shadowed_f90(vec3 f0);
 
     __host__ __device__ float luminance(const vec3& rgb);
 
@@ -49,6 +55,8 @@ namespace pathtracer {
                                        const vec3& normal, 
                                        const vec3& light, 
                                        const microfacet& material);
+
+    __host__ __device__ vec3 sample_GGX_VNDF(vec3 vec, float alpha_1, float alpha_2, float u, float v);
 
     __host__ __device__ vec3 sample_specular(const vec3& view_local, 
                                              float alpha, 

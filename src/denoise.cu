@@ -139,7 +139,7 @@ namespace pathtracer {
         pid_t pid = fork();
         if (pid == 0) {
             execvp(_argv[0], _argv);
-            perror("Could not execve optixDenoiser! Are you sure \"optixDenoiser\" is in your PATH?");
+            perror("Could not execvp optixDenoiser! Are you sure \"optixDenoiser\" is in your PATH?");
             exit(1);
         } else {
             return pid;

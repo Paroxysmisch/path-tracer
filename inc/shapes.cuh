@@ -38,13 +38,25 @@ namespace pathtracer {
         __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point) const override;
     };
 
+    struct triangle : shape {
+        __host__ __device__ triangle(const point& p1, const point& p2, const point& p3);
+
+        __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
+
+        __host__ __device__ virtual vec3 local_normal_at(const point& local_surface_point) const override;
+
+        __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point) const override;
+    };
+
     enum shape_type {
-        SPHERE
+        SPHERE,
+        TRIANGLE
     };
 
     union shape_data {
         __host__ __device__ shape_data& operator=(const sphere& other);
         sphere sphere;
+        triangle triangle;
     };
 
     enum mat_type {

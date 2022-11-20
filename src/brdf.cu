@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstdlib>
+#include <math.h>
 #include "brdf.cuh"
 #include "constants.h"
 #include "util.cuh"
@@ -8,6 +9,18 @@ namespace pathtracer {
 
     __host__ __device__ vec3 linear_interpolate(const vec3& begin, const vec3& end, float amount) {
         return begin + (end - begin) * amount;
+    }
+
+    __host__ __device__ float linear_interpolate(float begin, float end, float amount) {
+        return begin + (end - begin) * amount;
+    }
+
+    __host__ __device__ float maxf(float a, float b) {
+        return a >= b ? a : b;
+    }
+
+    __host__ __device__ float minf(float a, float b) {
+        return a <= b ? a : b;
     }
 
     __host__ __device__ vec3 base_color_to_specular_f0(const vec3& color, float metalness) {
@@ -23,10 +36,10 @@ namespace pathtracer {
         return f0 + (-f0 + vec3(f90, f90, f90)) * powf(1.f - n_dot_s, 5.f);
     }
 
-    __device__ float shadowed_f90(vec3 f0) {
+    __host__ __device__ float shadowed_f90(vec3 f0) {
         // For attenuation of f90 for very low f0
         const float c = (1.f / min_dielectrics_f0);
-        return min(1.f, c * luminance(f0));
+        return minf(1.f, c * luminance(f0));
     }
 
     __host__ __device__ float luminance(const vec3& rgb) {
@@ -63,6 +76,25 @@ namespace pathtracer {
         return res;
     }
 
+    __host__ __device__ vec3 sample_GGX_VNDF(vec3 vec, float alpha_1, float alpha_2, float u, float v) {
+        vec3 v_h = vec3(alpha_1 * vec.x, alpha_2 * vec.y, vec.z);
+
+        float lensq = v_h.x * v_h.x + v_h.y * v_h.y;
+        vec3 T1 = lensq > 0.f ? vec3(-v_h.y, v_h.x, 0.f) * (1 / sqrtf(lensq)) : vec3(1.f, 0.f, 0.f);
+        vec3 T2 = v_h ^ T1;
+
+        float r = sqrtf(u);
+        float phi = two_pi * v;
+        float t1 = r * cosf(phi);
+        float t2 = r * sinf(phi);
+        float s = 0.5f * (1.f + v_h.z);
+        t2 = linear_interpolate(sqrtf(1.f - t1 * t1), t2, s);
+
+        vec3 n_h = (T1 * t1) + (T2 * t2) + (v_h * sqrtf(maxf(0.f, 1.f - t1 * t1 - t2 * t2)));
+
+        return vec3(n_h.x * alpha_1, n_h.y * alpha_2, maxf(0.f, n_h.z));
+    }
+
     __host__ __device__ vec3 sample_specular(const vec3& view_local, 
                                              float alpha, 
                                              float alpha_squared, 
@@ -73,7 +105,22 @@ namespace pathtracer {
         vec3 half_local;
         if (f_equal(alpha, 0.f)) {
             half_local = {0.f, 0.f, 0.f};
-        } // Need to implement
+        } else {
+            half_local = sample_GGX_VNDF(view_local, alpha, alpha, u, v);
+        }
+
+        vec3 l_local = (-view_local).reflect(half_local);
+
+        float h_dot_l = maxf(0.00001f, minf(1.f, half_local * l_local));
+        const vec3 n_local = vec3(0.f, 0.f, 1.f);
+        float n_dot_l = maxf(0.00001f, minf(1.f, n_local * l_local));
+        float n_dot_v = maxf(0.00001f, minf(1.f, n_local * view_local));
+        float n_dot_h = maxf(0.00001f, minf(1.f, n_local * half_local));
+        vec3 F = eval_fresnel(specularF0, shadowed_f90(specularF0), h_dot_l);
+
+        // out_weight = F * spe
+
+        // Need to implement
         return {0.f, 0.f, 0.f};
     }
 
@@ -111,18 +158,26 @@ namespace pathtracer {
             float n = in_refractive_index / material.refractive_index;
             const float cos_i = -(normal * incident);
             const float sin_t2 = n * n * (1.f - cos_i * cos_i);
-            // if (sin_t2 > 1.f) return false; // We have Total Internal Reflection
             const float cos_t = sqrtf(1.f - sin_t2);
             vector refracted = (incident * n) + (normal * (n * cos_i - cos_t));
-            float c = (-normal) * incident;
-            refracted = (incident * n) + normal * (n * c - sqrtf(1 - powf(n, 2.f) * (1 - powf(c, 2.f))));
+            if (sin_t2 > 1.f) {
+                // We have Total Internal Reflection
+                if (normal * view > 0.f) {
+                    refracted = incident.reflect(normal);
+                } else {
+                    refracted = incident.reflect(-normal);
+                }
+            } 
+            // float c = (-normal) * incident;
+            // refracted = (incident * n) + normal * (n * c - sqrtf(1 - powf(n, 2.f) * (1 - powf(c, 2.f))));
 
-            // const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(refracted.normalize());
+            // const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(-normal);
             // float pdf;
             // pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
             // out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
-            // out_sample_weight = vec3(1.f, 1.f, 1.f) * (fabsf(view * out_ray_direction) / (pdf * material.transmissiveness)) * one_over_pi;
-            out_sample_weight = {1.f, 1.f, 1.f};
+            // out_sample_weight = vec3(1.f, 1.f, 1.f) * ((view * out_ray_direction) / (pdf)) * one_over_pi;
+            // if (out_ray_direction * (-normal) >= 0.5f) return false;
+            out_sample_weight = vec3(1.f, 1.f, 1.f) * 0.9f; // Replace with object's density
             out_ray_direction = refracted.normalize();
             if (normal * view <= 0.f) {
                 out_refractive_index = material.refractive_index;
@@ -130,29 +185,29 @@ namespace pathtracer {
                 out_refractive_index = 1.f; // Assume the ray leaves into a vacuum
             }
             return true;
-        }
+        } else {
+            if (normal * view <= 0.f) return false;
 
-        if (normal * view <= 0.f) return false;
+            const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
+            const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
+            vector normal_local{0.f, 0.f, 1.f};
 
-        const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
-        const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
-        vector normal_local{0.f, 0.f, 1.f};
+            float pdf;
+            pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
 
-        float pdf;
-        pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            // Diffuse BRDF
+            const brdf_data data = gen_brdf_data(view_local, normal_local, ray_direction_local, material);
 
-        // Diffuse BRDF
-        const brdf_data data = gen_brdf_data(view_local, normal_local, ray_direction_local, material);
+            out_sample_weight = data.diffuseReflectance * (data.n_dot_l / (pdf)) * one_over_pi;
 
-        out_sample_weight = data.diffuseReflectance * (data.n_dot_l / (pdf * (1 - material.transmissiveness))) * one_over_pi;
+            if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 
-        if (f_equal(luminance(out_sample_weight), 0.f)) return false;
+            out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
 
-        out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
+            out_refractive_index = in_refractive_index;
 
-        out_refractive_index = in_refractive_index;
-
-        return true;
+            return true;
+        }        
     }
 
 }
