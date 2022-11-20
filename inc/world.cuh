@@ -2,6 +2,7 @@
 #include "bvh.cuh"
 #include "shapes.cuh"
 #include <initializer_list>
+#include <vector>
 
 namespace pathtracer {
 
@@ -14,7 +15,7 @@ namespace pathtracer {
     };
 
     struct world {
-        const int num_objects;
+        int num_objects;
         pathtracer::object* objects;
         pathtracer::bvh_arena* arena;
         pathtracer::bvh_node* bvh_root;
@@ -24,6 +25,8 @@ namespace pathtracer {
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 
         world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads);
+
+        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, dim3 blocks, dim3 threads);
 
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 

@@ -67,7 +67,7 @@ __global__ void constant_brdf_test(pathtracer::canvas c, pathtracer::world world
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 1000;
+    constexpr int num_samples = 100;
 
     while (i < 1000) {
         while (j < 1000) {

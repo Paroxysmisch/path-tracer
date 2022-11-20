@@ -3,6 +3,7 @@
 #include "shapes.cuh"
 #include "world.cuh"
 #include "bvh.cuh"
+#include "OBJ_Loader.h"
 
 namespace pathtracer {
 
@@ -54,6 +55,104 @@ namespace pathtracer {
         bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
     }
 
+    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, dim3 blocks, dim3 threads) {
+        int total_objects{static_cast<int>(l.size())};
+        objl::Loader loader;
+
+        // Calculate the total number of objects
+        for (const std::string& filename : obj_filenames) {
+            bool loadout = loader.LoadFile(filename);
+
+            if (loadout) {
+                for (int i{0}; i < loader.LoadedMeshes.size(); ++i) {
+                    objl::Mesh curMesh = loader.LoadedMeshes[i];
+
+                    total_objects += (curMesh.Indices.size() / 3);
+                }
+            } else {
+                std::cout << "Failed to load file: " << filename << std::endl;
+            }
+        }
+
+        // Initialize member variables
+        num_objects = total_objects;
+        arena = new bvh_arena(num_objects);
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
+
+        // Build the objects
+        int current_object{0};
+        for (auto it = l.begin(); it < l.end(); ++it) {
+            objects[current_object].shape_t = (*it)->shape_t;
+            switch ((*it)->shape_t) {
+                case SPHERE:
+                    objects[current_object].shape_d.sphere = (*it)->shape_d.sphere;
+                    break;
+                case TRIANGLE:
+                    objects[current_object].shape_d.triangle = (*it)->shape_d.triangle;
+                    break;
+                }
+            objects[current_object].mat_t = (*it)->mat_t;
+            objects[current_object].mat_d = (*it)->mat_d;
+            ++current_object;
+        }
+
+        // Build the triangles
+        for (int f{0}; f < obj_filenames.size(); ++f) {
+            const std::string& filename = obj_filenames[f];
+            bool loadout = loader.LoadFile(filename);
+
+            if (loadout) {
+                for (int i{0}; i < loader.LoadedMeshes.size(); ++i) {
+                    objl::Mesh curMesh = loader.LoadedMeshes[i];
+
+                    for (int j{0}; j < curMesh.Indices.size(); j += 3) {
+                        objl::Vector3 vertex1 = curMesh.Vertices[curMesh.Indices[j]].Position;
+                        objl::Vector3 vertex2 = curMesh.Vertices[curMesh.Indices[j + 1]].Position;
+                        objl::Vector3 vertex3 = curMesh.Vertices[curMesh.Indices[j + 2]].Position;
+
+                        // vec3 v1 = obj_to_world_transformations[f].transform_point({vertex1.X, vertex1.Y, vertex1.Z});
+                        // vec3 v2 = obj_to_world_transformations[f].transform_point({vertex2.X, vertex2.Y, vertex2.Z});
+                        // vec3 v3 = obj_to_world_transformations[f].transform_point({vertex3.X, vertex3.Y, vertex3.Z});
+
+                        vec3 v1 = {vertex1.X, vertex1.Y, vertex1.Z};
+                        vec3 v2 = {vertex2.X, vertex2.Y, vertex2.Z};
+                        vec3 v3 = {vertex3.X, vertex3.Y, vertex3.Z};
+
+                        objl::Vector3 normal1 = curMesh.Vertices[curMesh.Indices[j]].Normal;
+                        objl::Vector3 normal2 = curMesh.Vertices[curMesh.Indices[j + 1]].Normal;
+                        objl::Vector3 normal3 = curMesh.Vertices[curMesh.Indices[j + 2]].Normal;
+
+                        vector average_normal = {
+                            (normal1.X + normal2.X + normal3.X) / 3.f,
+                            (normal1.Y + normal2.Y + normal3.Y) / 3.f,
+                            (normal1.Z + normal2.Z + normal3.Z) / 3.f
+                        };
+                        bool success_flag;
+                        average_normal = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(average_normal).normalize();
+
+                        objects[current_object].shape_t = TRIANGLE;
+                        objects[current_object].shape_d.triangle = triangle(v1, v2, v3);
+                        // objects[current_object].shape_d.triangle.normal = average_normal;
+                        objects[current_object].mat_t = MICROFACET;
+                        // vec3 color{
+                        //     curMesh.MeshMaterial.Kd.X,
+                        //     curMesh.MeshMaterial.Kd.Y,
+                        //     curMesh.MeshMaterial.Kd.Z
+                        // };
+                        objects[current_object].mat_d.microfacet = microfacet{{0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 1.f, 4.f};
+                        ++current_object;
+                    }
+                }
+            } else {
+                std::cout << "Failed to load file: " << filename << std::endl;
+            }
+        }
+
+        bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
+    }
+
     __host__ __device__ computations world::prepare_computations(const intersection& intersection, const ray& r) {
         point surface_point = r.shoot_distance(intersection.t_value);
         vector surface_normal;
@@ -97,7 +196,7 @@ namespace pathtracer {
                         num_intersections = objects[object_index].shape_d.sphere.find_intersections(r, intersection_buffer_ptr, object_index);
                         break;
                     case TRIANGLE:
-                        num_intersections = objects[object_index].shape_d.triangle.find_intersections(r, intersection_buffer, object_index);
+                        num_intersections = objects[object_index].shape_d.triangle.find_intersections(r, intersection_buffer_ptr, object_index);
                         break;
                     }
 

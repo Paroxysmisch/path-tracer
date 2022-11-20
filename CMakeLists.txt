@@ -60,6 +60,7 @@ set(test_sources
     world.cu
     camera.cu
     brdf.cu
+    mesh.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")
