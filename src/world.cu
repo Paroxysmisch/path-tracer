@@ -112,28 +112,35 @@ namespace pathtracer {
                         objl::Vector3 vertex2 = curMesh.Vertices[curMesh.Indices[j + 1]].Position;
                         objl::Vector3 vertex3 = curMesh.Vertices[curMesh.Indices[j + 2]].Position;
 
-                        // vec3 v1 = obj_to_world_transformations[f].transform_point({vertex1.X, vertex1.Y, vertex1.Z});
-                        // vec3 v2 = obj_to_world_transformations[f].transform_point({vertex2.X, vertex2.Y, vertex2.Z});
-                        // vec3 v3 = obj_to_world_transformations[f].transform_point({vertex3.X, vertex3.Y, vertex3.Z});
+                        vec3 v1 = obj_to_world_transformations[f].transform_point({vertex1.X, vertex1.Y, vertex1.Z});
+                        vec3 v2 = obj_to_world_transformations[f].transform_point({vertex2.X, vertex2.Y, vertex2.Z});
+                        vec3 v3 = obj_to_world_transformations[f].transform_point({vertex3.X, vertex3.Y, vertex3.Z});
 
-                        vec3 v1 = {vertex1.X, vertex1.Y, vertex1.Z};
-                        vec3 v2 = {vertex2.X, vertex2.Y, vertex2.Z};
-                        vec3 v3 = {vertex3.X, vertex3.Y, vertex3.Z};
+                        // vec3 v1 = {vertex1.X, vertex1.Y, vertex1.Z};
+                        // vec3 v2 = {vertex2.X, vertex2.Y, vertex2.Z};
+                        // vec3 v3 = {vertex3.X, vertex3.Y, vertex3.Z};
 
                         objl::Vector3 normal1 = curMesh.Vertices[curMesh.Indices[j]].Normal;
                         objl::Vector3 normal2 = curMesh.Vertices[curMesh.Indices[j + 1]].Normal;
                         objl::Vector3 normal3 = curMesh.Vertices[curMesh.Indices[j + 2]].Normal;
 
-                        vector average_normal = {
-                            (normal1.X + normal2.X + normal3.X) / 3.f,
-                            (normal1.Y + normal2.Y + normal3.Y) / 3.f,
-                            (normal1.Z + normal2.Z + normal3.Z) / 3.f
-                        };
+                        vec3 n1 = {normal1.X, normal1.Y, normal1.Z};
+                        vec3 n2 = {normal2.X, normal2.Y, normal2.Z};
+                        vec3 n3 = {normal3.X, normal3.Y, normal3.Z};
+
+                        // vector average_normal = {
+                        //     (normal1.X + normal2.X + normal3.X) / 3.f,
+                        //     (normal1.Y + normal2.Y + normal3.Y) / 3.f,
+                        //     (normal1.Z + normal2.Z + normal3.Z) / 3.f
+                        // };
                         bool success_flag;
-                        average_normal = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(average_normal).normalize();
+                        n1 = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(n1).normalize();
+                        n2 = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(n2).normalize();
+                        n3 = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(n3).normalize();
+                        // average_normal = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(average_normal).normalize();
 
                         objects[current_object].shape_t = TRIANGLE;
-                        objects[current_object].shape_d.triangle = triangle(v1, v2, v3);
+                        objects[current_object].shape_d.triangle = triangle(v1, v2, v3, n1, n2, n3);
                         // objects[current_object].shape_d.triangle.normal = average_normal;
                         objects[current_object].mat_t = MICROFACET;
                         // vec3 color{
@@ -162,7 +169,7 @@ namespace pathtracer {
                 surface_normal = intersected_object.shape_d.sphere.world_normal_at(surface_point);
                 break;
             case TRIANGLE:
-                surface_normal = intersected_object.shape_d.triangle.world_normal_at(surface_point);
+                surface_normal = intersected_object.shape_d.triangle.world_normal_at(surface_point, intersection.u, intersection.v);
                 break;
             }
         vector eye = (-r.d).normalize();

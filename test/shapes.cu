@@ -57,6 +57,17 @@ TEST_CASE("Shape intersections", "[shapes, ray]") {
         REQUIRE((pathtracer::f_equal(intersection_buffer[0].t_value, 2.f)) == true);
         REQUIRE((intersection_buffer[0].object_index == 0) == true);
     }
+    SECTION("Ray with triangle normal interpolation") {
+        pathtracer::intersection intersection_buffer[1];
+        int object_index{0};
+
+        pathtracer::ray ray1{{-0.2f, 0.3f, -2.f}, {0.f, 0.f, 1.f}};
+        pathtracer::triangle triangle1({0.f, 1.f, 0.f}, {-1.f, 0.f, 0.f}, {1.f, 0.f, 0.f});
+        int num_intersections1 = triangle1.find_intersections(ray1, intersection_buffer, object_index);
+        REQUIRE((num_intersections1 == 1) == true);
+        REQUIRE(pathtracer::f_equal(intersection_buffer[0].u, 0.45f));
+        REQUIRE(pathtracer::f_equal(intersection_buffer[0].v, 0.25f));
+    }
     SECTION("Triangle scene") {
         constexpr int canvas_pixels = 1000;
         pathtracer::canvas c{canvas_pixels, canvas_pixels};
@@ -134,7 +145,7 @@ TEST_CASE("Shape utils") {
         REQUIRE((sphere.local_normal_at(expected) == expected) == true);
     }
 
-    SECTION("World normal at") {
+    SECTION("World normal at sphere") {
         pathtracer::sphere sphere{pathtracer::mat4::get_scaling(1.f, 0.5f, 1.f) * pathtracer::mat4::get_rotation_z(pathtracer::pi / 5)};
 
         pathtracer::vec3 world_surface_point{0.f, 0.707106f, -0.707106f};
@@ -144,5 +155,13 @@ TEST_CASE("Shape utils") {
         auto temp = sphere.world_normal_at(world_surface_point);
 
         REQUIRE((sphere.world_normal_at(world_surface_point) == expected) == true);
+    }
+
+    SECTION("World normal at triangle") {
+        pathtracer::triangle triangle1({0.f, 1.f, 0.f}, {-1.f, 0.f, 0.f}, {1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {-1.f, 0.f, 0.f}, {1.f, 0.f, 0.f});
+
+        pathtracer::vector calculated_normal = triangle1.world_normal_at({0.f, 0.f, 0.f}, 0.45f, 0.25f);
+
+        REQUIRE((calculated_normal == pathtracer::vec3(-0.5547f, 0.83205f, 0)) == true);
     }
 }

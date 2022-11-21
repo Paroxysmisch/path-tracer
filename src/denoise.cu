@@ -92,7 +92,7 @@ namespace pathtracer {
                             camera_space_normal = (camera.inverse_transform).transpose().transform_vector(world_normal);
                             break;
                         case TRIANGLE:
-                            world_normal = object.shape_d.triangle.world_normal_at(comp.surface_point);
+                            world_normal = object.shape_d.triangle.world_normal_at(comp.surface_point, comp.intersection.u, comp.intersection.v);
                             camera_space_normal = (camera.inverse_transform).transpose().transform_vector(world_normal);
                             break;
                         }

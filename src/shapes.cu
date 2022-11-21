@@ -57,11 +57,11 @@ namespace pathtracer {
         return 2;
     }
 
-    __host__ __device__ vec3 sphere::local_normal_at(const point& local_surface_point) const {
+    __host__ __device__ vec3 sphere::local_normal_at(const point& local_surface_point, float u, float v) const {
         return local_surface_point;
     }
 
-    __host__ __device__ vec3 sphere::world_normal_at(const point& world_surface_point) const {
+    __host__ __device__ vec3 sphere::world_normal_at(const point& world_surface_point, float u, float v) const {
         const point local_surface_point = transformation_to_object.transform_point(world_surface_point);
         vector transformed_normal = inverse_transpose.transform_vector(local_surface_point);
         return transformed_normal.normalize();
@@ -90,7 +90,20 @@ namespace pathtracer {
         p3{p3},
         e1{p2 - p1},
         e2{p3 - p1},
-        normal{(e2 ^ e1).normalize()} {}
+        n1{e2 ^ e1},
+        n2{e2 ^ e1},
+        n3{e2 ^ e1} {}
+
+    __host__ __device__ triangle::triangle(const point& p1, const point& p2, const point& p3, const vector& n1, const vector& n2, const vector& n3) :
+        shape(triangle_get_lower(p1, p2, p3), triangle_get_upper(p1, p2, p3), mat4::get_identity()),
+        p1{p1},
+        p2{p2},
+        p3{p3},
+        e1{p2 - p1},
+        e2{p3 - p1},
+        n1{n1},
+        n2{n2},
+        n3{n3} {}
 
     __host__ __device__ int triangle::find_intersections(const ray& r, intersection* intersection_buffer, int object_index) {
         vector dir_cross_e2 = r.d ^ e2;
@@ -107,16 +120,16 @@ namespace pathtracer {
         if (v < 0.f || (u + v) > 1.f) return 0;
 
         float t = f * (e2 * origin_cross_e1);
-        intersection_buffer[0] = intersection{t, object_index};
+        intersection_buffer[0] = intersection{t, object_index, u, v};
         return 1;
     }
 
-    __host__ __device__ vec3 triangle::local_normal_at(const point& local_surface_point) const {
-        return normal;
+    __host__ __device__ vec3 triangle::local_normal_at(const point& local_surface_point, float u, float v) const {
+        return ((n2 * u) + (n3 * v) + (n1 * (1.f - u - v))).normalize();
     }
 
-    __host__ __device__ vec3 triangle::world_normal_at(const point& world_surface_point) const {
-        return normal;
+    __host__ __device__ vec3 triangle::world_normal_at(const point& world_surface_point, float u, float v) const {
+        return ((n2 * u) + (n3 * v) + (n1 * (1.f - u - v))).normalize();
     }
 
     __host__ __device__ shape_data& shape_data::operator=(const struct sphere& other) {
