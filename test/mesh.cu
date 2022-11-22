@@ -34,7 +34,7 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 1000;
+    constexpr int num_samples = 100;
 
     while (i < 1000) {
         while (j < 1000) {
@@ -75,7 +75,10 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
 
                     bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
 
-                    if (!eval_successful) break;
+                    if (!eval_successful) {
+                        multiplier &= {0.f, 0.f, 0.f};
+                        break;
+                    };
 
                     multiplier &= out_sample_weight;
 
@@ -163,7 +166,7 @@ TEST_CASE("Full mesh brdf renders") {
 
         pathtracer::world w({
             &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj7, &obj8, &obj9
-        }, {"teapot.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.6f, 0.6f, 0.6f)}, blocks, threads);
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, blocks, threads);
 
         // pathtracer::world w({
         //  &obj1, &obj6, &obj7

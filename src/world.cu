@@ -143,12 +143,12 @@ namespace pathtracer {
                         objects[current_object].shape_d.triangle = triangle(v1, v2, v3, n1, n2, n3);
                         // objects[current_object].shape_d.triangle.normal = average_normal;
                         objects[current_object].mat_t = MICROFACET;
-                        // vec3 color{
-                        //     curMesh.MeshMaterial.Kd.X,
-                        //     curMesh.MeshMaterial.Kd.Y,
-                        //     curMesh.MeshMaterial.Kd.Z
-                        // };
-                        objects[current_object].mat_d.microfacet = microfacet{{0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 1.f, 4.f};
+                        vec3 color{
+                            curMesh.MeshMaterial.Ka.X,
+                            curMesh.MeshMaterial.Ka.Y,
+                            curMesh.MeshMaterial.Ka.Z
+                        };
+                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.95f, 4.f};
                         ++current_object;
                     }
                 }

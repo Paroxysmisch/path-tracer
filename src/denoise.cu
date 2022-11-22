@@ -83,19 +83,7 @@ namespace pathtracer {
                 if (!success_flag) {
                     c.write_pixel(i, j, no_normal);
                 } else {
-                    pathtracer::object& object = world.objects[comp.intersection.object_index];
-                    vec3 world_normal;
-                    
-                    switch (object.shape_t) {
-                        case SPHERE:
-                            world_normal = object.shape_d.sphere.world_normal_at(comp.surface_point);
-                            camera_space_normal = (camera.inverse_transform).transpose().transform_vector(world_normal);
-                            break;
-                        case TRIANGLE:
-                            world_normal = object.shape_d.triangle.world_normal_at(comp.surface_point, comp.intersection.u, comp.intersection.v);
-                            camera_space_normal = (camera.inverse_transform).transpose().transform_vector(world_normal);
-                            break;
-                        }
+                    camera_space_normal = (camera.inverse_transform).transpose().transform_vector(comp.surface_normal);
 
                     // A normal can be negative, so we write the absolute value of the normal
                     camera_space_normal.x = fabsf(camera_space_normal.x);
