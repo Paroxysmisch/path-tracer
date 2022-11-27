@@ -179,7 +179,7 @@ namespace pathtracer {
             surface_normal = -surface_normal;
         }
         return {
-            {intersection.t_value, intersection.object_index},
+            {intersection.t_value, intersection.object_index, intersection.u, intersection.v},
             surface_point,
             eye,
             surface_normal,
