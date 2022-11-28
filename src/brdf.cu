@@ -206,8 +206,11 @@ namespace pathtracer {
             float G = minf(1.f, minf(g1, g2));
 
             float Rs = (D * G) * one_over_pi / (data.n_dot_l * data.n_dot_v);
+            vec3 Rs_F = F * Rs;
+            Rs_F *= 0.8f;
+            Rs_F += vec3(0.2f, 0.2f, 0.2f);
 
-            out_sample_weight = (data.diffuseReflectance * one_over_pi + material.color * (0.2f + Rs * (0.8f))) * (data.n_dot_l / (pdf));
+            out_sample_weight = (data.diffuseReflectance * one_over_pi + (material.color & Rs_F)) * (data.n_dot_l / (pdf));
 
             if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 
