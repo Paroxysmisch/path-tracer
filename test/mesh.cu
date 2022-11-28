@@ -34,7 +34,7 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 100;
+    constexpr int num_samples = 1000;
 
     while (i < 1000) {
         while (j < 1000) {
@@ -117,7 +117,7 @@ TEST_CASE("Full mesh brdf renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
+        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.95f, 1.5f, 0.f, 1.f};
 
         pathtracer::object obj1{pathtracer::SPHERE, 
              pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 5.f)),

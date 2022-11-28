@@ -190,7 +190,24 @@ namespace pathtracer {
             // Diffuse BRDF
             const brdf_data data = gen_brdf_data(view_local, normal_local, ray_direction_local, material);
 
-            out_sample_weight = data.diffuseReflectance * (data.n_dot_l / (pdf)) * one_over_pi;
+            // Old Model
+            // out_sample_weight = data.diffuseReflectance * (data.n_dot_l / (pdf)) * one_over_pi;
+
+            vec3 f0 = base_color_to_specular_f0(material.color, material.metalness);
+            vec3 F = eval_fresnel(f0, shadowed_f90(f0), data.v_dot_h);
+
+            float r1 = 1.f / (4.f * data.alpha_squared * powf(data.n_dot_h, 4.f));
+            float r2 = (data.n_dot_h * data.n_dot_h - 1.f) / (data.alpha_squared * data.n_dot_h * data.n_dot_h);
+            float D = r1 * expf(r2);
+
+            float two_n_dot_h = 2.f * data.n_dot_h;
+            float g1 = (two_n_dot_h * data.n_dot_v) / data.v_dot_h;
+            float g2 = (two_n_dot_h * data.n_dot_l) / data.v_dot_h;
+            float G = minf(1.f, minf(g1, g2));
+
+            float Rs = (D * G) * one_over_pi / (data.n_dot_l * data.n_dot_v);
+
+            out_sample_weight = (data.diffuseReflectance * one_over_pi + material.color * (0.2f + Rs * (0.8f))) * (data.n_dot_l / (pdf));
 
             if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 
