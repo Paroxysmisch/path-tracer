@@ -59,6 +59,19 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     }
 
                     pathtracer::object& object = world.objects[comp.intersection.object_index];
+                    pathtracer::microfacet material_copy = object.mat_d.microfacet;
+
+                    // If the object intersected is a triangle and uses textures,
+                    // we manually calculate its diffuse material color
+                    if (object.shape_t == pathtracer::TRIANGLE && object.shape_d.triangle.texture_idx > -1) {
+                        pathtracer::vec3 interpolated_texture_coordinate = ((object.shape_d.triangle.tex2 * comp.intersection.u) + (object.shape_d.triangle.tex3 * comp.intersection.v) + (object.shape_d.triangle.tex1 * (1.f - comp.intersection.u - comp.intersection.v))) / 3;
+                        float* texture = world.textures[object.shape_d.triangle.texture_idx];
+                        int h = static_cast<int>(interpolated_texture_coordinate.x * 618);
+                        int w = static_cast<int>(interpolated_texture_coordinate.y * 1100);
+                        int offset = h * 1100 * 4 + w * 4;
+                        pathtracer::vector diffuse_color = {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
+                        material_copy.color = diffuse_color;
+                    }
 
                     float u = curand_uniform(state);
                     float v = curand_uniform(state);
@@ -73,7 +86,8 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
 
                     pathtracer::vector out_sample_weight;
 
-                    bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
+                    // bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
+                    bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy);
 
                     if (!eval_successful) {
                         multiplier &= {0.f, 0.f, 0.f};
@@ -156,7 +170,7 @@ TEST_CASE("Full mesh brdf renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(2.5f, 3.f, 2.f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj8.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.95f, 0.f}, {500.f, 500.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
+        obj8.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.95f, 0.f}, {500.f, 500.f, 0.f}, 1.f, 0.01f, 0.f, 1.f};
 
         pathtracer::object obj9{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 10.f, -10.f)),
@@ -165,8 +179,8 @@ TEST_CASE("Full mesh brdf renders") {
 
 
         pathtracer::world w({
-            &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj7, &obj8, &obj9
-        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, blocks, threads);
+            &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj8
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {"cursed.exr"}, blocks, threads);
 
         // pathtracer::world w({
         //  &obj1, &obj6, &obj7

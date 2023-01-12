@@ -1,6 +1,7 @@
 #include "check_cuda_errors.h"
 #include "scene.cuh"
 #include "shapes.cuh"
+#include "util.cuh"
 #include "world.cuh"
 #include "bvh.cuh"
 #include "OBJ_Loader.h"
@@ -55,7 +56,7 @@ namespace pathtracer {
         bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
     }
 
-    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, dim3 blocks, dim3 threads) {
+    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<std::string> texture_filenames, dim3 blocks, dim3 threads) {
         int total_objects{static_cast<int>(l.size())};
         objl::Loader loader;
 
@@ -80,6 +81,7 @@ namespace pathtracer {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&textures), obj_filenames.size() * sizeof(float*)) );
 
         // Build the objects
         int current_object{0};
@@ -102,6 +104,41 @@ namespace pathtracer {
         for (int f{0}; f < obj_filenames.size(); ++f) {
             const std::string& filename = obj_filenames[f];
             bool loadout = loader.LoadFile(filename);
+
+            // Load the texture corresponding the obj_filename
+            const std::string& texture_filename = texture_filenames[f];
+            int texture_idx = -1;
+            if (texture_filename.size() != 0) {
+                float* out; // width * height * RGBA
+                int width;
+                int height;
+                const char* err = nullptr;
+
+                int ret = LoadEXR(&out, &width, &height, texture_filename.c_str(), &err);
+
+                if (ret != TINYEXR_SUCCESS) {
+                    if (err) {
+                    fprintf(stderr, "ERR : %s\n", err);
+                    FreeEXRErrorMessage(err); // release memory of error message.
+                    }
+                } else {
+                    // Copy image data into CUDA-managed memory
+                    float* texture;
+                    checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&texture), width * height * 4 * sizeof(float)) );
+                    for (int t{0}; t < width * height * 4; ++t) {
+                        texture[t] = out[t];
+                    }
+                    textures[f] = texture;
+                    free(out); // release memory of image data
+                }
+                texture_idx = f;
+
+                // for (int p{0}; p < width * height * 4; p += 4) {
+                //     std::cout << textures[f][p] << " " << textures[f][p + 1] << " " << textures[f][p + 2] << " " << textures[f][p + 3] << " " << std::endl;
+                // }
+
+                // std::cout << pathtracer::vector {textures[f][offset + 0], textures[f][offset + 1], textures[f][offset + 2]} << std::endl;
+            }
 
             if (loadout) {
                 for (int i{0}; i < loader.LoadedMeshes.size(); ++i) {
@@ -139,8 +176,16 @@ namespace pathtracer {
                         n3 = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(n3).normalize();
                         // average_normal = obj_to_world_transformations[f].inverse(success_flag).transpose().transform_vector(average_normal).normalize();
 
+                        objl::Vector2 tex1 = curMesh.Vertices[curMesh.Indices[j]].TextureCoordinate;
+                        objl::Vector2 tex2 = curMesh.Vertices[curMesh.Indices[j + 1]].TextureCoordinate;
+                        objl::Vector2 tex3 = curMesh.Vertices[curMesh.Indices[j + 2]].TextureCoordinate;
+
+                        vec3 t1 = {tex1.X, tex1.Y, 0.f};
+                        vec3 t2 = {tex2.X, tex2.Y, 0.f};
+                        vec3 t3 = {tex3.X, tex3.Y, 0.f};
+
                         objects[current_object].shape_t = TRIANGLE;
-                        objects[current_object].shape_d.triangle = triangle(v1, v2, v3, n1, n2, n3);
+                        objects[current_object].shape_d.triangle = triangle(v1, v2, v3, n1, n2, n3, t1, t2, t3, texture_idx);
                         // objects[current_object].shape_d.triangle.normal = average_normal;
                         objects[current_object].mat_t = MICROFACET;
                         vec3 color{
@@ -148,7 +193,7 @@ namespace pathtracer {
                             curMesh.MeshMaterial.Ka.Y,
                             curMesh.MeshMaterial.Ka.Z
                         };
-                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.95f, 4.f};
+                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 4.f};
                         ++current_object;
                     }
                 }

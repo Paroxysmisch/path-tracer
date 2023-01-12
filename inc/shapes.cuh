@@ -54,10 +54,14 @@ namespace pathtracer {
         vector n1;
         vector n2;
         vector n3;
+        vector tex1;
+        vector tex2;
+        vector tex3;
+        int texture_idx;
 
         __host__ __device__ triangle(const point& p1, const point& p2, const point& p3);
 
-        __host__ __device__ triangle(const point& p1, const point& p2, const point& p3, const vector& n1, const vector& n2, const vector& n3);
+        __host__ __device__ triangle(const point& p1, const point& p2, const point& p3, const vector& n1, const vector& n2, const vector& n3, const vector& tex1 = {0.f, 0.f, -1.f}, const vector& tex2 = {0.f, 0.f, -1.f}, const vector& tex3 = {0.f, 0.f, -1.f}, int texture_idx = -1);
 
         __host__ __device__ virtual int find_intersections(const ray& r, intersection* intersection_buffer, int object_index) override;
 

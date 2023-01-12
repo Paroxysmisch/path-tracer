@@ -94,7 +94,7 @@ namespace pathtracer {
         n2{e2 ^ e1},
         n3{e2 ^ e1} {}
 
-    __host__ __device__ triangle::triangle(const point& p1, const point& p2, const point& p3, const vector& n1, const vector& n2, const vector& n3) :
+    __host__ __device__ triangle::triangle(const point& p1, const point& p2, const point& p3, const vector& n1, const vector& n2, const vector& n3, const vector& tex1, const vector& tex2, const vector& tex3, int texture_index) :
         shape(triangle_get_lower(p1, p2, p3), triangle_get_upper(p1, p2, p3), mat4::get_identity()),
         p1{p1},
         p2{p2},
@@ -103,7 +103,11 @@ namespace pathtracer {
         e2{p3 - p1},
         n1{n1},
         n2{n2},
-        n3{n3} {}
+        n3{n3},
+        tex1{tex1},
+        tex2{tex2},
+        tex3{tex3},
+        texture_idx{texture_index} {}
 
     __host__ __device__ int triangle::find_intersections(const ray& r, intersection* intersection_buffer, int object_index) {
         vector dir_cross_e2 = r.d ^ e2;

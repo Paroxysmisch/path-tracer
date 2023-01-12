@@ -167,8 +167,10 @@ namespace pathtracer {
             // float pdf;
             // pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
             // out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
+            // out_ray_direction = (refracted + out_ray_direction).normalize();
             // out_sample_weight = vec3(1.f, 1.f, 1.f) * ((view * out_ray_direction) / (pdf)) * one_over_pi;
             // if (out_ray_direction * (-normal) >= 0.5f) return false;
+            // out_sample_weight = vec3(1.f, 1.f, 1.f) * 0.9f;
             out_sample_weight = vec3(1.f, 1.f, 1.f) * 0.9f; // Replace with object's density
             out_ray_direction = refracted.normalize();
             if (normal * view <= 0.f) {
@@ -196,8 +198,8 @@ namespace pathtracer {
             vec3 f0 = base_color_to_specular_f0(material.color, material.metalness);
             vec3 F = eval_fresnel(f0, shadowed_f90(f0), data.v_dot_h);
 
-            float r1 = 1.f / (4.f * data.alpha_squared * powf(data.n_dot_h, 4.f));
-            float r2 = (data.n_dot_h * data.n_dot_h - 1.f) / (data.alpha_squared * data.n_dot_h * data.n_dot_h);
+            float r1 = 1.f / (epsilon + 4.f * data.alpha * powf(data.n_dot_h, 4.f));
+            float r2 = (data.n_dot_h * data.n_dot_h - 1.f) / (epsilon + data.alpha * data.n_dot_h * data.n_dot_h);
             float D = r1 * expf(r2);
 
             float two_n_dot_h = 2.f * data.n_dot_h;
@@ -210,7 +212,7 @@ namespace pathtracer {
             Rs_F *= 0.8f;
             Rs_F += vec3(0.2f, 0.2f, 0.2f);
 
-            out_sample_weight = (data.diffuseReflectance * one_over_pi + (material.color & Rs_F)) * (data.n_dot_l / (pdf));
+            out_sample_weight = (data.diffuseReflectance * one_over_pi * (1.f - material.metalness) + (material.color & Rs_F)) * (data.n_dot_l / (pdf));
 
             if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 

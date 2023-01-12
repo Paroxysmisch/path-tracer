@@ -21,12 +21,13 @@ namespace pathtracer {
         pathtracer::bvh_node* bvh_root;
         int* collision_buffer;
         pathtracer::intersection* intersection_buffer;
+        float** textures;
 
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 
         world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads);
 
-        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, dim3 blocks, dim3 threads);
+        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<std::string> texture_filenames, dim3 blocks, dim3 threads);
 
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 
