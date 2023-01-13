@@ -45,6 +45,9 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
     constexpr int max_depth = 10;
     constexpr int num_samples = 1000;
 
+    pathtracer::sphere bounding_sphere {pathtracer::mat4::get_identity()};
+    pathtracer::intersection  bounding_sphere_buffer[2];
+
     while (i < 1000) {
         while (j < 1000) {
             pathtracer::vec3 color{0.f, 0.f, 0.f};
@@ -63,7 +66,12 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     pathtracer::computations comp = world.intersect_world(ray, success_flag, collision_buffer, intersection_buffer);
 
                     if (!success_flag) {
-                        multiplier &= {0.f, 0.f, 0.f};
+                        // int num_intersections = bounding_sphere.find_intersections(ray, bounding_sphere_buffer, 0);
+                        // if (num_intersections > 0) {
+                        //     multiplier &= ray.shoot_distance(intersection_buffer[1].t_value);
+                        // } else{
+                            multiplier &= {0.01f, 0.01f, 0.01f};
+                        // }
                         break;
                     }
 
