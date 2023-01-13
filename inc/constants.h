@@ -14,5 +14,13 @@ namespace pathtracer {
     inline constexpr float two_pi = 6.283185307f;
 
     inline constexpr float one_over_pi = 0.31830988f;
+
+    inline constexpr bool collision_buffer_limit_enable = true;
+
+    inline constexpr int collision_buffer_limit = 512;
+
+    inline constexpr bool intersection_buffer_limit_enable = true;
+
+    inline constexpr int intersection_buffer_limit = 32;
     
 }

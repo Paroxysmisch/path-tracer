@@ -1,4 +1,5 @@
 #include "check_cuda_errors.h"
+#include "constants.h"
 #include "scene.cuh"
 #include "shapes.cuh"
 #include "util.cuh"
@@ -79,8 +80,17 @@ namespace pathtracer {
         num_objects = total_objects;
         arena = new bvh_arena(num_objects);
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&objects), num_objects * sizeof(pathtracer::object)) );
-        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
-        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
+        if (collision_buffer_limit_enable && num_objects > collision_buffer_limit) {
+            checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * collision_buffer_limit * sizeof(int)) );
+        } else {
+            checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
+        }
+        if (intersection_buffer_limit_enable && num_objects > intersection_buffer_limit) {
+            checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * intersection_buffer_limit * sizeof(intersection)) );
+        } else {
+            checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
+
+        }
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&textures), obj_filenames.size() * sizeof(float*)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&(this->texture_datas)), obj_filenames.size() * sizeof(texture_data)) );
 

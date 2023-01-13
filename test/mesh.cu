@@ -26,11 +26,20 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
 
     pathtracer::vec3 color_black{0.f, 0.f, 0.f};
 
-    int collision_buffer_offset = world.num_objects * (i * num_threads_j + j);
+    int collision_buffer_offset;
+    if (pathtracer::collision_buffer_limit_enable) {
+        collision_buffer_offset = min(world.num_objects, pathtracer::collision_buffer_limit) * (i * num_threads_j + j);
+    } else {
+        collision_buffer_offset = world.num_objects * (i * num_threads_j + j);
+    }
     int* collision_buffer = (world.collision_buffer + collision_buffer_offset);
 
-    int intersection_buffer_offset = 2 * world.num_objects * (i * num_threads_j + j);
-
+    int intersection_buffer_offset;
+    if (pathtracer::intersection_buffer_limit_enable) {
+        intersection_buffer_offset = 2 * min(world.num_objects, pathtracer::intersection_buffer_limit) * (i * num_threads_j + j);
+    } else {
+        intersection_buffer_offset = 2 * world.num_objects * (i * num_threads_j + j);
+    }
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
