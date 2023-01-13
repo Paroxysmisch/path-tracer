@@ -66,9 +66,9 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     if (object.shape_t == pathtracer::TRIANGLE && object.shape_d.triangle.texture_idx > -1) {
                         pathtracer::vec3 interpolated_texture_coordinate = ((object.shape_d.triangle.tex2 * comp.intersection.u) + (object.shape_d.triangle.tex3 * comp.intersection.v) + (object.shape_d.triangle.tex1 * (1.f - comp.intersection.u - comp.intersection.v))) / 3;
                         float* texture = world.textures[object.shape_d.triangle.texture_idx];
-                        int h = static_cast<int>(interpolated_texture_coordinate.x * 618);
-                        int w = static_cast<int>(interpolated_texture_coordinate.y * 1100);
-                        int offset = h * 1100 * 4 + w * 4;
+                        int w = static_cast<int>(interpolated_texture_coordinate.x * world.texture_datas[object.shape_d.triangle.texture_idx].width);
+                        int h = static_cast<int>(interpolated_texture_coordinate.y * world.texture_datas[object.shape_d.triangle.texture_idx].height);
+                        int offset = h * world.texture_datas[object.shape_d.triangle.texture_idx].width * 4 + w * 4;
                         pathtracer::vector diffuse_color = {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
                         material_copy.color = diffuse_color;
                     }
@@ -180,7 +180,7 @@ TEST_CASE("Full mesh brdf renders") {
 
         pathtracer::world w({
             &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj8
-        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {"cursed.exr"}, blocks, threads);
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
 
         // pathtracer::world w({
         //  &obj1, &obj6, &obj7

@@ -56,7 +56,7 @@ namespace pathtracer {
         bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
     }
 
-    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<std::string> texture_filenames, dim3 blocks, dim3 threads) {
+    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, dim3 blocks, dim3 threads) {
         int total_objects{static_cast<int>(l.size())};
         objl::Loader loader;
 
@@ -82,6 +82,7 @@ namespace pathtracer {
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&collision_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(int)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&intersection_buffer), blocks.x * blocks.y * threads.x * threads.y * 2 * num_objects * sizeof(intersection)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&textures), obj_filenames.size() * sizeof(float*)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&(this->texture_datas)), obj_filenames.size() * sizeof(texture_data)) );
 
         // Build the objects
         int current_object{0};
@@ -106,7 +107,7 @@ namespace pathtracer {
             bool loadout = loader.LoadFile(filename);
 
             // Load the texture corresponding the obj_filename
-            const std::string& texture_filename = texture_filenames[f];
+            const std::string& texture_filename = texture_datas[f].filename;
             int texture_idx = -1;
             if (texture_filename.size() != 0) {
                 float* out; // width * height * RGBA
@@ -129,6 +130,7 @@ namespace pathtracer {
                         texture[t] = out[t];
                     }
                     textures[f] = texture;
+                    this->texture_datas[f] = texture_datas[f];
                     free(out); // release memory of image data
                 }
                 texture_idx = f;

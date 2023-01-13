@@ -14,6 +14,12 @@ namespace pathtracer {
         bool is_inside;
     };
 
+    struct texture_data {
+        std::string filename;
+        int height;
+        int width;
+    };
+
     struct world {
         int num_objects;
         pathtracer::object* objects;
@@ -22,12 +28,13 @@ namespace pathtracer {
         int* collision_buffer;
         pathtracer::intersection* intersection_buffer;
         float** textures;
+        texture_data* texture_datas;
 
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 
         world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads);
 
-        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<std::string> texture_filenames, dim3 blocks, dim3 threads);
+        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, dim3 blocks, dim3 threads);
 
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 
