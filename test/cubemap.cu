@@ -14,7 +14,7 @@
 #include "camera.cuh"
 #include "denoise.cuh"
 
-__global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world world, pathtracer::camera camera, curandState* d_states) {
+__global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, pathtracer::camera camera, curandState* d_states) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     const int j_original = j;
@@ -43,10 +43,7 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 100;
-
-    pathtracer::sphere bounding_sphere {pathtracer::mat4::get_identity()};
-    pathtracer::intersection  bounding_sphere_buffer[2];
+    constexpr int num_samples = 1000;
 
     while (i < 1000) {
         while (j < 1000) {
@@ -66,11 +63,23 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     pathtracer::computations comp = world.intersect_world(ray, success_flag, collision_buffer, intersection_buffer);
 
                     if (!success_flag) {
-                        // int num_intersections = bounding_sphere.find_intersections(ray, bounding_sphere_buffer, 0);
+                        // int num_intersections = xy_posz_top.find_intersections(ray, triangle_buffer, 0);
                         // if (num_intersections > 0) {
-                        //     multiplier &= ray.shoot_distance(intersection_buffer[1].t_value);
+                        //     multiplier &= {1.f, 0.f, 0.f};
                         // } else{
-                            multiplier &= {0.01f, 0.01f, 0.01f};
+                        float t_xy_posz = (1 - ray.o.z) * ray.d_inv.z;
+                        pathtracer::point intersection_point = ray.shoot_distance(t_xy_posz);
+                        if (-1.f <= intersection_point.x && intersection_point.x <= 1.f && -1.f <= intersection_point.y && intersection_point.y <= 1.f) {
+                            float tex_u = (intersection_point.x + 1) / 2.f;
+                            float tex_v = (intersection_point.y + 1) / 2.f;
+                            float* texture = world.textures[0];
+                            int w = static_cast<int>(fmod(tex_u - pathtracer::epsilon, 1.f) * world.texture_datas[0].width);
+                            int h = static_cast<int>(fmod(tex_v - pathtracer::epsilon, 1.f) * world.texture_datas[0].height);
+                            int offset = h * world.texture_datas[0].width * 4 + w * 4;
+                            multiplier &= {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
+                        } else {
+                            multiplier &= {0.25f, 0.25f, 0.25f};
+                        }
                         // }
                         break;
                     }
@@ -81,10 +90,10 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     // If the object intersected is a triangle and uses textures,
                     // we manually calculate its diffuse material color
                     if (object.shape_t == pathtracer::TRIANGLE && object.shape_d.triangle.texture_idx > -1) {
-                        pathtracer::vec3 interpolated_texture_coordinate = ((object.shape_d.triangle.tex2 * comp.intersection.u) + (object.shape_d.triangle.tex3 * comp.intersection.v) + (object.shape_d.triangle.tex1 * (1.f - comp.intersection.u - comp.intersection.v))) / 3;
+                        pathtracer::vec3 interpolated_texture_coordinate = ((object.shape_d.triangle.tex2 * comp.intersection.u) + (object.shape_d.triangle.tex3 * comp.intersection.v) + (object.shape_d.triangle.tex1 * (1.f - comp.intersection.u - comp.intersection.v)));
                         float* texture = world.textures[object.shape_d.triangle.texture_idx];
-                        int w = static_cast<int>(interpolated_texture_coordinate.x * world.texture_datas[object.shape_d.triangle.texture_idx].width);
-                        int h = static_cast<int>(interpolated_texture_coordinate.y * world.texture_datas[object.shape_d.triangle.texture_idx].height);
+                        int w = static_cast<int>(fmod(interpolated_texture_coordinate.x - pathtracer::epsilon, 1.f) * world.texture_datas[object.shape_d.triangle.texture_idx].width);
+                        int h = static_cast<int>(fmod(interpolated_texture_coordinate.y - pathtracer::epsilon, 1.f) * world.texture_datas[object.shape_d.triangle.texture_idx].height);
                         int offset = h * world.texture_datas[object.shape_d.triangle.texture_idx].width * 4 + w * 4;
                         pathtracer::vector diffuse_color = {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
                         material_copy.color = diffuse_color;
@@ -95,7 +104,7 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
                     float t = curand_uniform(state);
 
                     if (object.mat_t == pathtracer::LIGHT) {
-                        multiplier &= {1000.f, 1000.f, 1000.f};
+                        multiplier &= {100.f, 100.f, 100.f};
                         break;
                     }
 
@@ -134,7 +143,7 @@ __global__ void mesh_constant_brdf_test(pathtracer::canvas c, pathtracer::world 
     }
 }
 
-TEST_CASE("Full mesh brdf renders") {
+TEST_CASE("Cubemap renders") {
     SECTION("Constant") {
         constexpr int canvas_pixels = 1000;
         pathtracer::canvas c{canvas_pixels, canvas_pixels};
@@ -142,62 +151,23 @@ TEST_CASE("Full mesh brdf renders") {
         dim3 blocks(16, 16);
         dim3 threads(16, 16);
 
-        pathtracer::camera camera(1000, 1000, pathtracer::pi / 2.f, {0.f, 0.f, -10.f}, {0.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, pathtracer::mat4::get_rotation_z(pathtracer::pi / 4.f));
+        pathtracer::camera camera(1000, 1000, pathtracer::pi / 2.f, {0.f, 0.f, -0.85f}, {0.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, pathtracer::mat4::get_identity());
 
-        pathtracer::object obj0{pathtracer::SPHERE, 
-             pathtracer::sphere(pathtracer::mat4::get_translation(-2.f, 0.f, -2.f)),
-             pathtracer::MICROFACET,
-             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj0.mat_d.microfacet = pathtracer::microfacet{{0.25f, 0.25f, 0.95f}, {0.f, 0.f, 0.f}, 0.95f, 1.5f, 0.f, 1.f};
 
-        pathtracer::object obj1{pathtracer::SPHERE, 
-             pathtracer::sphere(pathtracer::mat4::get_translation(-1.f, -1.f, 5.f)),
-             pathtracer::MICROFACET,
-             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 4.f};
-
-        pathtracer::object obj3{pathtracer::SPHERE, 
-             pathtracer::sphere(pathtracer::mat4::get_translation(1.f, 1.f, 2.f)),
-             pathtracer::MICROFACET,
-             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj3.mat_d.microfacet = pathtracer::microfacet{{0.75f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
-
-        pathtracer::object obj4{pathtracer::SPHERE, 
-             pathtracer::sphere(pathtracer::mat4::get_translation(2.f, 0.f, 1.f)),
-             pathtracer::MICROFACET,
-             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj4.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.5f}, {0.f, 0.f, 0.f}, 0.75f, 0.2f, 0.f, 1.f};
-
-        pathtracer::object obj5{pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
+        pathtracer::object obj0{pathtracer::SPHERE,
+             pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)),
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
 
-        pathtracer::object obj6{pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(-10.f, 0.f, -10.f)),
-             pathtracer::LIGHT,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
 
-        pathtracer::object obj7{pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 0.f, -10.f)),
-             pathtracer::LIGHT,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
-
-        pathtracer::object obj8{pathtracer::SPHERE, 
-             pathtracer::sphere(pathtracer::mat4::get_translation(2.5f, 3.f, 2.f)),
-             pathtracer::MICROFACET,
-             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj8.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.95f, 0.f}, {500.f, 500.f, 0.f}, 1.f, 0.01f, 0.f, 1.f};
-
-        pathtracer::object obj9{pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(10.f, 10.f, -10.f)),
-             pathtracer::LIGHT,
-             pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
-
+        // pathtracer::world w({
+        //     &obj0
+        // }, {"teapot_full.obj", "xy_wall.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f),  pathtracer::mat4::get_translation(0.f, 0.f, 1.f)}, {{"cursed.exr", 618, 1100}, {"landscape.exr", 1705, 2729}}, blocks, threads);
 
         pathtracer::world w({
-            &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj8
-        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
+            &obj0
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
+
 
         // pathtracer::world w({
         //  &obj1, &obj6, &obj7
@@ -208,12 +178,12 @@ TEST_CASE("Full mesh brdf renders") {
 
         checkCudaErrors( cudaMalloc(reinterpret_cast<void**>(&d_states), blocks.y * blocks.x * threads.y * threads.x * sizeof(curandState)) );
 
-        mesh_constant_brdf_test<<<blocks, threads>>>(c, w, camera, d_states);
+        cubemap_test<<<blocks, threads>>>(c, w, camera, d_states);
 
         checkCudaErrors( cudaDeviceSynchronize() );
 
-        c.export_as_PPM("Mesh_Test_GPU.ppm");
-        c.export_as_EXR("Mesh_Test_GPU.exr");
-        pathtracer::denoise(canvas_pixels, canvas_pixels, "Mesh_Test_GPU.exr", w, camera, "Mesh_Test_GPU_denoised.exr");
+        c.export_as_PPM("Cubemap_Test_GPU.ppm");
+        c.export_as_EXR("Cubemap_Test_GPU.exr");
+        pathtracer::denoise(canvas_pixels, canvas_pixels, "Cubemap_Test_GPU.exr", w, camera, "Cubemap_Test_GPU_denoised.exr");
     }
 }
