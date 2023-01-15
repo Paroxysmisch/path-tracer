@@ -154,6 +154,19 @@ namespace pathtracer {
         return one_over_pi;
     }
 
+    __host__ __device__ float Fd_DisneyDiffuse(brdf_data data) {
+        float FD90MinusOne = 2.0f * data.roughness * data.l_dot_h * data.l_dot_h - 0.5f;
+
+        float FDL = 1.0f + (FD90MinusOne * pow(1.0f - data.n_dot_l, 5.0f));
+        float FDV = 1.0F + (FD90MinusOne * pow(1.0f - data.n_dot_v, 5.0f));
+
+        return FDL * FDV * one_over_pi;
+    }
+
+    __host__ __device__ float V_Kelemen(float LoH) {
+        return 0.25f / (LoH * LoH);
+    }
+
     __device__ bool eval_brdf(float u, 
                               float v,
                               float t,
@@ -249,9 +262,18 @@ namespace pathtracer {
 
             // diffuse BRDF
             vec3 diffuseColor = material.color * (1.0 - material.metalness);
-            vec3 Fd = diffuseColor * Fd_Lambert();
+            vec3 Fd = diffuseColor * Fd_DisneyDiffuse(data);
 
-            out_sample_weight = material.emission + (Fr + Fd) * (data.n_dot_l / (pdf));
+            // clear coat
+            float clear_coat_perceptual_roughness = minf(maxf(material.clear_coat_roughness, 0.089f), 1.f);
+            float clear_coat_roughness = clear_coat_perceptual_roughness * clear_coat_perceptual_roughness;
+
+            float  Dc = D_GGX(clear_coat_roughness, data.n_dot_h);
+            float Vc = V_SmithGGXCorrelated(data.n_dot_v, data.n_dot_l, clear_coat_roughness);
+            float  Fc = F_Schlick(0.04, data.l_dot_h).x * material.clear_coat_strength;
+            float Frc = (Dc * Vc) * Fc;
+
+            out_sample_weight = material.emission + ((Fr * (1.f - Fc)) + (Fd * (1.f - Fc)) + Frc) * (data.n_dot_l / (pdf));
 
             // if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 

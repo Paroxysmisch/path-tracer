@@ -155,7 +155,7 @@ TEST_CASE("Cubemap renders") {
 
 
         pathtracer::object obj0{pathtracer::SPHERE,
-             pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)),
+             pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
 
@@ -163,13 +163,13 @@ TEST_CASE("Cubemap renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f, 0.04f, 0.2f, 0.1f};
 
         pathtracer::object obj2{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.65f, 0.85f, 0.15f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.15f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f, 0.8f, 0.f};
 
 
         // pathtracer::world w({

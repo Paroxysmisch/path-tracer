@@ -72,6 +72,10 @@ namespace pathtracer {
 
     __host__ __device__ float Fd_Lambert();
 
+    __host__ __device__ float Fd_DisneyDiffuse(brdf_data data);
+
+    __host__ __device__ float V_Kelemen(float LoH);
+
     __device__ bool eval_brdf(float u, 
                               float v,
                               float t,

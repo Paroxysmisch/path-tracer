@@ -104,6 +104,8 @@ namespace pathtracer {
         float transmissiveness = 0.f;
         float refractive_index = 1.f;
         float reflectance = 0.04f;
+        float clear_coat_strength = 0.f;
+        float clear_coat_roughness = 0.f;
     };
 
     struct light {
