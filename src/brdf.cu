@@ -68,53 +68,53 @@ namespace pathtracer {
         return res;
     }
 
-    __host__ __device__ vec3 sample_GGX_VNDF(vec3 vec, float alpha_1, float alpha_2, float u, float v) {
-        vec3 v_h = vec3(alpha_1 * vec.x, alpha_2 * vec.y, vec.z);
+    // __host__ __device__ vec3 sample_GGX_VNDF(vec3 vec, float alpha_1, float alpha_2, float u, float v) {
+    //     vec3 v_h = vec3(alpha_1 * vec.x, alpha_2 * vec.y, vec.z);
 
-        float lensq = v_h.x * v_h.x + v_h.y * v_h.y;
-        vec3 T1 = lensq > 0.f ? vec3(-v_h.y, v_h.x, 0.f) * (1 / sqrtf(lensq)) : vec3(1.f, 0.f, 0.f);
-        vec3 T2 = v_h ^ T1;
+    //     float lensq = v_h.x * v_h.x + v_h.y * v_h.y;
+    //     vec3 T1 = lensq > 0.f ? vec3(-v_h.y, v_h.x, 0.f) * (1 / sqrtf(lensq)) : vec3(1.f, 0.f, 0.f);
+    //     vec3 T2 = v_h ^ T1;
 
-        float r = sqrtf(u);
-        float phi = two_pi * v;
-        float t1 = r * cosf(phi);
-        float t2 = r * sinf(phi);
-        float s = 0.5f * (1.f + v_h.z);
-        t2 = linear_interpolate(sqrtf(1.f - t1 * t1), t2, s);
+    //     float r = sqrtf(u);
+    //     float phi = two_pi * v;
+    //     float t1 = r * cosf(phi);
+    //     float t2 = r * sinf(phi);
+    //     float s = 0.5f * (1.f + v_h.z);
+    //     t2 = linear_interpolate(sqrtf(1.f - t1 * t1), t2, s);
 
-        vec3 n_h = (T1 * t1) + (T2 * t2) + (v_h * sqrtf(maxf(0.f, 1.f - t1 * t1 - t2 * t2)));
+    //     vec3 n_h = (T1 * t1) + (T2 * t2) + (v_h * sqrtf(maxf(0.f, 1.f - t1 * t1 - t2 * t2)));
 
-        return vec3(n_h.x * alpha_1, n_h.y * alpha_2, maxf(0.f, n_h.z));
-    }
+    //     return vec3(n_h.x * alpha_1, n_h.y * alpha_2, maxf(0.f, n_h.z));
+    // }
 
-    __host__ __device__ vec3 sample_specular(const vec3& view_local, 
-                                             float alpha, 
-                                             float alpha_squared, 
-                                             const vec3& specularF0, 
-                                             float u, 
-                                             float v, 
-                                             vec3& out_weight) {
-        vec3 half_local;
-        if (f_equal(alpha, 0.f)) {
-            half_local = {0.f, 0.f, 0.f};
-        } else {
-            half_local = sample_GGX_VNDF(view_local, alpha, alpha, u, v);
-        }
+    // __host__ __device__ vec3 sample_specular(const vec3& view_local,
+    //                                          float alpha,
+    //                                          float alpha_squared,
+    //                                          const vec3& specularF0,
+    //                                          float u,
+    //                                          float v,
+    //                                          vec3& out_weight) {
+    //     vec3 half_local;
+    //     if (f_equal(alpha, 0.f)) {
+    //         half_local = {0.f, 0.f, 0.f};
+    //     } else {
+    //         half_local = sample_GGX_VNDF(view_local, alpha, alpha, u, v);
+    //     }
 
-        vec3 l_local = (-view_local).reflect(half_local);
+    //     vec3 l_local = (-view_local).reflect(half_local);
 
-        float h_dot_l = maxf(0.00001f, minf(1.f, half_local * l_local));
-        const vec3 n_local = vec3(0.f, 0.f, 1.f);
-        float n_dot_l = maxf(0.00001f, minf(1.f, n_local * l_local));
-        float n_dot_v = maxf(0.00001f, minf(1.f, n_local * view_local));
-        float n_dot_h = maxf(0.00001f, minf(1.f, n_local * half_local));
-        vec3 F = eval_fresnel(specularF0, shadowed_f90(specularF0), h_dot_l);
+    //     float h_dot_l = maxf(0.00001f, minf(1.f, half_local * l_local));
+    //     const vec3 n_local = vec3(0.f, 0.f, 1.f);
+    //     float n_dot_l = maxf(0.00001f, minf(1.f, n_local * l_local));
+    //     float n_dot_v = maxf(0.00001f, minf(1.f, n_local * view_local));
+    //     float n_dot_h = maxf(0.00001f, minf(1.f, n_local * half_local));
+    //     vec3 F = eval_fresnel(specularF0, shadowed_f90(specularF0), h_dot_l);
 
-        // out_weight = F * spe
+    //     // out_weight = F * spe
 
-        // Need to implement
-        return {0.f, 0.f, 0.f};
-    }
+    //     // Need to implement
+    //     return {0.f, 0.f, 0.f};
+    // }
 
     // Samples points oriented along +Z axis
     // Needs to be transformed by a quaternion
@@ -131,6 +131,27 @@ namespace pathtracer {
         out_pdf = one_over_pi * result.z;
 
         return result;
+    }
+
+    __host__ __device__ float D_GGX(float NoH, float roughness) {
+        float a = NoH * roughness;
+        float k = roughness / (1.f - NoH * NoH + a * a);
+        return k * k * one_over_pi;
+    }
+
+    __host__ __device__ vec3 F_Schlick(float u, vec3 f0) {
+        return f0 + (vec3(1.f, 1.f, 1.f) - f0) * powf(1.f - u, 5.f);
+    }
+
+    __host__ __device__ float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
+        float a2 = roughness * roughness;
+        float GGXL = NoV * sqrt(NoL * NoL * (1.f - a2) + a2);
+        float GGXV = NoL * sqrt(NoV * NoV * (1.f - a2) + a2);
+        return 0.5f / (GGXV + GGXL);
+    }
+
+    __host__ __device__ float Fd_Lambert() {
+        return one_over_pi;
     }
 
     __device__ bool eval_brdf(float u, 
@@ -195,26 +216,44 @@ namespace pathtracer {
             // Old Model
             // out_sample_weight = data.diffuseReflectance * (data.n_dot_l / (pdf)) * one_over_pi;
 
-            vec3 f0 = base_color_to_specular_f0(material.color, material.metalness);
-            vec3 F = eval_fresnel(f0, shadowed_f90(f0), data.v_dot_h);
+            // Disabled
+            // vec3 f0 = base_color_to_specular_f0(material.color, material.metalness);
+            // vec3 F = eval_fresnel(f0, shadowed_f90(f0), data.v_dot_h);
 
-            float r1 = 1.f / (epsilon + 4.f * data.alpha * powf(data.n_dot_h, 4.f));
-            float r2 = (data.n_dot_h * data.n_dot_h - 1.f) / (epsilon + data.alpha * data.n_dot_h * data.n_dot_h);
-            float D = r1 * expf(r2);
+            // float r1 = 1.f / (epsilon + 4.f * data.alpha * powf(data.n_dot_h, 4.f));
+            // float r2 = (data.n_dot_h * data.n_dot_h - 1.f) / (epsilon + data.alpha * data.n_dot_h * data.n_dot_h);
+            // float D = r1 * expf(r2);
 
-            float two_n_dot_h = 2.f * data.n_dot_h;
-            float g1 = (two_n_dot_h * data.n_dot_v) / data.v_dot_h;
-            float g2 = (two_n_dot_h * data.n_dot_l) / data.v_dot_h;
-            float G = minf(1.f, minf(g1, g2));
+            // float two_n_dot_h = 2.f * data.n_dot_h;
+            // float g1 = (two_n_dot_h * data.n_dot_v) / data.v_dot_h;
+            // float g2 = (two_n_dot_h * data.n_dot_l) / data.v_dot_h;
+            // float G = minf(1.f, minf(g1, g2));
 
-            float Rs = (D * G) * one_over_pi / (data.n_dot_l * data.n_dot_v);
-            vec3 Rs_F = F * Rs;
-            Rs_F *= 0.8f;
-            Rs_F += vec3(0.2f, 0.2f, 0.2f);
+            // float Rs = (D * G) * one_over_pi / (data.n_dot_l * data.n_dot_v);
+            // vec3 Rs_F = F * Rs;
+            // Rs_F *= 0.8f;
+            // Rs_F += vec3(0.2f, 0.2f, 0.2f);
 
-            out_sample_weight = (data.diffuseReflectance * one_over_pi * (1.f - material.metalness) + (material.color & Rs_F)) * (data.n_dot_l / (pdf));
+            // out_sample_weight = (data.diffuseReflectance * one_over_pi * (1.f - material.metalness) + (material.color & Rs_F)) * (data.n_dot_l / (pdf));
 
-            if (f_equal(luminance(out_sample_weight), 0.f)) return false;
+            // perceptually linear roughness to roughness
+            float roughness = material.roughness * material.roughness;
+            vec3 f0 = vec3(0.16f * material.reflectance * material.reflectance * (1.f - material.metalness)) + material.color * material.metalness;
+
+            float D = D_GGX(data.n_dot_h, roughness);
+            vec3 F = F_Schlick(data.l_dot_h, f0);
+            float V = V_SmithGGXCorrelated(data.n_dot_v, data.n_dot_l, roughness);
+
+            // specular BRDF
+            vec3 Fr = F * (D * V);
+
+            // diffuse BRDF
+            vec3 diffuseColor = material.color * (1.0 - material.metalness);
+            vec3 Fd = diffuseColor * Fd_Lambert();
+
+            out_sample_weight = material.emission + (Fr + Fd) * (data.n_dot_l / (pdf));
+
+            // if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 
             out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
 

@@ -13,6 +13,8 @@ namespace pathtracer {
 
     __host__ __device__ vec3::vec3(float x, float y, float z): x(x), y(y), z(z) {}
 
+    __host__ __device__ vec3::vec3(float x): x(x), y(x), z(x) {}
+
     __host__ __device__ bool vec3::operator==(const vec3& other) const {
         return f_equal(x, other.x) && f_equal(y, other.y) && f_equal(z, other.z);
     }

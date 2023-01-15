@@ -69,7 +69,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                         // } else{
                         float t_xy_posz = (1 - ray.o.z) * ray.d_inv.z;
                         pathtracer::point intersection_point = ray.shoot_distance(t_xy_posz);
-                        if (-1.f <= intersection_point.x && intersection_point.x <= 1.f && -1.f <= intersection_point.y && intersection_point.y <= 1.f) {
+                        if (t_xy_posz > 0 && -1.f <= intersection_point.x && intersection_point.x <= 1.f && -1.f <= intersection_point.y && intersection_point.y <= 1.f) {
                             float tex_u = (intersection_point.x + 1) / 2.f;
                             float tex_v = (intersection_point.y + 1) / 2.f;
                             float* texture = world.textures[0];
@@ -159,13 +159,25 @@ TEST_CASE("Cubemap renders") {
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
 
+        pathtracer::object obj1{pathtracer::SPHERE,
+             pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.75f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f};
+
+        pathtracer::object obj2{pathtracer::SPHERE,
+             pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.65f, 0.85f, 0.15f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f};
+
 
         // pathtracer::world w({
         //     &obj0
         // }, {"teapot_full.obj", "xy_wall.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f),  pathtracer::mat4::get_translation(0.f, 0.f, 1.f)}, {{"cursed.exr", 618, 1100}, {"landscape.exr", 1705, 2729}}, blocks, threads);
 
         pathtracer::world w({
-            &obj0
+            &obj0, &obj1, &obj2
         }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
 
 

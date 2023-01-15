@@ -32,6 +32,8 @@ namespace pathtracer {
 
         __host__ __device__ vec3(float x, float y, float z);
 
+        __host__ __device__ vec3(float x);
+
         __host__ __device__ bool operator==(const vec3& other) const;
 
         __host__ __device__ vec3 operator+(const vec3& other) const;

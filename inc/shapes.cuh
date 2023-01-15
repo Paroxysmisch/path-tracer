@@ -101,8 +101,9 @@ namespace pathtracer {
         vec3 emission;
         float metalness;
         float roughness;
-        float transmissiveness;
-        float refractive_index;
+        float transmissiveness = 0.f;
+        float refractive_index = 1.f;
+        float reflectance = 0.04f;
     };
 
     struct light {

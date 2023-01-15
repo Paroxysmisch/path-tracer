@@ -64,6 +64,14 @@ namespace pathtracer {
 
     __host__ __device__ point cosine_sample_hemisphere(float u, float v, float& out_pdf);
 
+    __host__ __device__ float D_GGX(float NoH, float roughness);
+
+    __host__ __device__ vec3 F_Schlick(float u, vec3 f0);
+
+    __host__ __device__ float V_SmithGGXCorrelated(float NoV, float NoL, float roughness);
+
+    __host__ __device__ float Fd_Lambert();
+
     __device__ bool eval_brdf(float u, 
                               float v,
                               float t,
