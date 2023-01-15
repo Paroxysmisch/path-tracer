@@ -57,7 +57,7 @@ namespace pathtracer {
         bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);
     }
 
-    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, dim3 blocks, dim3 threads) {
+    world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, const std::string environment_map_filename, dim3 blocks, dim3 threads) {
         int total_objects{static_cast<int>(l.size())};
         objl::Loader loader;
 
@@ -120,7 +120,7 @@ namespace pathtracer {
             const std::string& texture_filename = texture_datas[f].filename;
             int texture_idx = -1;
             if (texture_filename.size() != 0) {
-                float* out; // width * height * RGBA
+                float* out; // height * width * RGBA
                 int width;
                 int height;
                 const char* err = nullptr;
@@ -212,6 +212,34 @@ namespace pathtracer {
             } else {
                 std::cout << "Failed to load file: " << filename << std::endl;
             }
+        }
+
+        // Create the environment map
+        if (environment_map_filename != "") {
+            float* out; // height * width * RGBA
+            int width;
+            int height;
+            const char* err = nullptr;
+
+            int ret = LoadEXR(&out, &width, &height, environment_map_filename.c_str(), &err);
+
+            if (ret != TINYEXR_SUCCESS) {
+                if (err) {
+                fprintf(stderr, "ERR : %s\n", err);
+                FreeEXRErrorMessage(err); // release memory of error message.
+                }
+            } else {
+                // Copy image data into CUDA-managed memory
+                checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&environment_map), width * height * 4 * sizeof(float)) );
+                for (int t{0}; t < width * height * 4; ++t) {
+                    environment_map[t] = out[t];
+                }
+                environment_map_height = height;
+                environment_map_width = width;
+                free(out); // release memory of image data
+            }
+        } else {
+            environment_map = nullptr;
         }
 
         bvh_root = pathtracer::gen_bvh(objects, num_objects, arena);

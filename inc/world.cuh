@@ -29,12 +29,15 @@ namespace pathtracer {
         pathtracer::intersection* intersection_buffer;
         float** textures;
         texture_data* texture_datas;
+        float* environment_map;
+        int environment_map_height;
+        int environment_map_width;
 
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 
         world(const std::initializer_list<object*> l, dim3 blocks, dim3 threads);
 
-        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, dim3 blocks, dim3 threads);
+        world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, const std::string environment_map_filename, dim3 blocks, dim3 threads);
 
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 

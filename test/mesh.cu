@@ -197,7 +197,7 @@ TEST_CASE("Full mesh brdf renders") {
 
         pathtracer::world w({
             &obj0, &obj1, &obj3, &obj4, &obj5, &obj6, &obj8
-        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, -5.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {{"cursed.exr", 618, 1100}}, "", blocks, threads);
 
         // pathtracer::world w({
         //  &obj1, &obj6, &obj7

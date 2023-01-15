@@ -4,6 +4,7 @@
 #include <curand_kernel.h>
 #include <vector>
 #include <string>
+#include <cmath>
 #include "brdf.cuh"
 #include "check_cuda_errors.h"
 #include "constants.h"
@@ -63,24 +64,37 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                     pathtracer::computations comp = world.intersect_world(ray, success_flag, collision_buffer, intersection_buffer);
 
                     if (!success_flag) {
-                        // int num_intersections = xy_posz_top.find_intersections(ray, triangle_buffer, 0);
-                        // if (num_intersections > 0) {
-                        //     multiplier &= {1.f, 0.f, 0.f};
-                        // } else{
-                        float t_xy_posz = (1 - ray.o.z) * ray.d_inv.z;
-                        pathtracer::point intersection_point = ray.shoot_distance(t_xy_posz);
-                        if (t_xy_posz > 0 && -1.f <= intersection_point.x && intersection_point.x <= 1.f && -1.f <= intersection_point.y && intersection_point.y <= 1.f) {
-                            float tex_u = (intersection_point.x + 1) / 2.f;
-                            float tex_v = (intersection_point.y + 1) / 2.f;
-                            float* texture = world.textures[0];
-                            int w = static_cast<int>(fmod(tex_u - pathtracer::epsilon, 1.f) * world.texture_datas[0].width);
-                            int h = static_cast<int>(fmod(tex_v - pathtracer::epsilon, 1.f) * world.texture_datas[0].height);
-                            int offset = h * world.texture_datas[0].width * 4 + w * 4;
-                            multiplier &= {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
-                        } else {
-                            multiplier &= {0.25f, 0.25f, 0.25f};
-                        }
+                        // float t_xy_posz = (1 - ray.o.z) * ray.d_inv.z;
+                        // pathtracer::point intersection_point = ray.shoot_distance(t_xy_posz);
+                        // if (t_xy_posz > 0 && -1.f <= intersection_point.x && intersection_point.x <= 1.f && -1.f <= intersection_point.y && intersection_point.y <= 1.f) {
+                        //     float tex_u = (intersection_point.x + 1) / 2.f;
+                        //     float tex_v = (intersection_point.y + 1) / 2.f;
+                        //     float* texture = world.textures[0];
+                        //     int w = static_cast<int>(fmod(tex_u - pathtracer::epsilon, 1.f) * world.texture_datas[0].width);
+                        //     int h = static_cast<int>(fmod(tex_v - pathtracer::epsilon, 1.f) * world.texture_datas[0].height);
+                        //     int offset = h * world.texture_datas[0].width * 4 + w * 4;
+                        //     multiplier &= {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
+                        // } else {
+                        //     multiplier &= {0.25f, 0.25f, 0.25f};
                         // }
+                        float a = ray.d * ray.d;
+                        float b = 2 * (ray.d * ray.o);
+                        float c = (ray.o * ray.o) - 1.f;
+
+                        float discriminant = (b * b) - (4 * a * c);
+
+                        if (world.environment_map != nullptr && discriminant >= 0 && ray.o.mag_2() <= 1) {
+                            pathtracer::point intersection_point = ray.shoot_distance((-b + sqrtf(discriminant)) / (2 * a));
+                            intersection_point = pathtracer::vec3(0.f, 0.f, 0.f) - intersection_point;
+                            float tex_u = 0.5f + atan2f(intersection_point.z, intersection_point.x) * 0.5f * pathtracer::one_over_pi;
+                            float tex_v = 0.5f + asinf(intersection_point.y) * pathtracer::one_over_pi;
+                            int w = static_cast<int>(fmod(tex_u - pathtracer::epsilon, 1.f) * world.environment_map_width);
+                            int h = static_cast<int>(fmod(tex_v - pathtracer::epsilon, 1.f) * world.environment_map_height);
+                            int offset = h * world.environment_map_width * 4 + w * 4;
+                            multiplier &= {world.environment_map[offset + 0], world.environment_map[offset + 1], world.environment_map[offset + 2]};
+                        } else {
+                            multiplier &= {0.f, 0.f, 0.f};
+                        }
                         break;
                     }
 
@@ -163,13 +177,13 @@ TEST_CASE("Cubemap renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f, 0.04f, 0.2f, 0.1f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f, 0.04f};
 
         pathtracer::object obj2{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.15f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f, 0.8f, 0.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f, 0.8f, 0.f};
 
 
         // pathtracer::world w({
@@ -178,7 +192,7 @@ TEST_CASE("Cubemap renders") {
 
         pathtracer::world w({
             &obj0, &obj1, &obj2
-        }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, blocks, threads);
+        }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, "env.exr", blocks, threads);
 
 
         // pathtracer::world w({
