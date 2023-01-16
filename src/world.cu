@@ -205,7 +205,7 @@ namespace pathtracer {
                             curMesh.MeshMaterial.Ka.Y,
                             curMesh.MeshMaterial.Ka.Z
                         };
-                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, 0.3f, 0.f, 4.f};
+                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, 0.3f, 0.f, 4.f, 0.04f, 0.f, 0.f, -0.3f};
                         ++current_object;
                     }
                 }

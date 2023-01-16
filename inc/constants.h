@@ -22,5 +22,7 @@ namespace pathtracer {
     inline constexpr bool intersection_buffer_limit_enable = true;
 
     inline constexpr int intersection_buffer_limit = 32;
+
+    inline constexpr float mediump_flt_max = 65504.0;
     
 }

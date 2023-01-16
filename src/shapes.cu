@@ -67,6 +67,18 @@ namespace pathtracer {
         return transformed_normal.normalize();
     }
 
+    __host__ __device__ vec3 sphere::world_tangent_at(const point& world_surface_point) const {
+        // vector centre_to_surface = transformation_to_object.transform_point(world_surface_point);
+        // if (centre_to_surface == vec3(0.f, 1.f, 0.f)) {
+        //     return {1.f, 0.f, 0.f};
+        // }
+        // return (vec3{0.f, 1.f, 0.f} ^ (world_surface_point - transformation_to_world.transform_point(vec3(0.f, 0.f, 0.f)))).normalize();
+        float theta = atan2f(world_surface_point.y, world_surface_point.x);
+        float cos_phi = (world_surface_point.z / world_surface_point.mag());
+
+        return {-sinf(theta), 0.f, cos_phi};
+    }
+
     __host__ __device__ point triangle_get_lower(const point& p1, const point& p2, const point& p3) {
         return {
             minf(p1.x, minf(p2.x, p3.x)),
@@ -107,7 +119,28 @@ namespace pathtracer {
         tex1{tex1},
         tex2{tex2},
         tex3{tex3},
-        texture_idx{texture_index} {}
+        texture_idx{texture_index} {
+            float x1 = p2.x - p1.x;
+            float x2 = p3.x - p1.x;
+            float y1 = p2.y - p1.y;
+            float y2 = p3.y - p1.y;
+            float z1 = p2.z - p1.z;
+            float z2 = p3.z - p1.z;
+
+            float s1 = tex2.x - tex1.x;
+            float s2 = tex3.x - tex1.x;
+            float t1 = tex2.y - tex1.y;
+            float t2 = tex3.y - tex1.y;
+
+            float r = 1.f / (s1 * t2 - s2 * t1);
+
+            tan1 = vec3((t2 * x1 - t1 * x2) * r,
+                    (t2 * y1 - t1 * y2) * r,
+                    (t2 * z1 - t1 * z2) * r).normalize();
+            tan2 = vec3((s1 * x2 - s2 * x1) * r,
+                    (s1 * y2 - s2 * y1) * r,
+                    (s1 * z2 - s2 * z1) * r).normalize();
+        }
 
     __host__ __device__ int triangle::find_intersections(const ray& r, intersection* intersection_buffer, int object_index) {
         vector dir_cross_e2 = r.d ^ e2;

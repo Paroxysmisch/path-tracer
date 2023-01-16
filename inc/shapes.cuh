@@ -38,6 +38,8 @@ namespace pathtracer {
         __host__ __device__ virtual vec3 local_normal_at(const point& local_surface_point, float u = -1.f, float v = -1.f) const override;
         
         __host__ __device__ virtual vec3 world_normal_at(const point& world_surface_point, float u = -1.f, float v = -1.f) const override;
+
+        __host__ __device__ vec3 world_tangent_at(const point& world_surface_point) const;
     };
 
     __host__ __device__ point triangle_get_lower(const point& p1, const point& p2, const point& p3);
@@ -58,6 +60,8 @@ namespace pathtracer {
         vector tex2;
         vector tex3;
         int texture_idx;
+        vector tan1;
+        vector tan2;
 
         __host__ __device__ triangle(const point& p1, const point& p2, const point& p3);
 
@@ -106,6 +110,7 @@ namespace pathtracer {
         float reflectance = 0.04f;
         float clear_coat_strength = 0.f;
         float clear_coat_roughness = 0.f;
+        float anisotropy = 0.f;
     };
 
     struct light {

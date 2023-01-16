@@ -76,6 +76,10 @@ namespace pathtracer {
 
     __host__ __device__ float V_Kelemen(float LoH);
 
+    __host__ __device__ float D_GGX_Anisotropic(float NoH, const vec3 h, const vec3 t, const vec3 b, float at, float ab);
+
+    __host__ __device__ float V_SmithGGXCorrelated_Anisotropic(float at, float ab, float ToV, float BoV, float ToL, float BoL, float NoV, float NoL);
+
     __device__ bool eval_brdf(float u, 
                               float v,
                               float t,
@@ -86,5 +90,18 @@ namespace pathtracer {
                               vec3& out_sample_weight,
                               float& out_refractive_index,
                               const microfacet& material);
+
+    __device__ bool eval_brdf_anisotropic(float u,
+                                          float v,
+                                          float t,
+                                          float in_refractive_index,
+                                          vector normal,
+                                          vector view,
+                                          vector& out_ray_direction,
+                                          vec3& out_sample_weight,
+                                          float& out_refractive_index,
+                                          const microfacet& material,
+                                          const vec3 tangent,
+                                          const vec3 bitangent);
 
 }

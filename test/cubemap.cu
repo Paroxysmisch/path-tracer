@@ -57,7 +57,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                 pathtracer::ray ray = camera.gen_ray_for_pixel(i, j, a, b);
                 bool success_flag{false};
                 pathtracer::vec3 multiplier{1.f, 1.f, 1.f};
-                multiplier *= pathtracer::one_over_pi;
+                // multiplier *= pathtracer::one_over_pi;
                 float current_refractive_index = 1.f;
 
                 for (int l{0}; l < max_depth; ++l) {
@@ -118,7 +118,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                     float t = curand_uniform(state);
 
                     if (object.mat_t == pathtracer::LIGHT) {
-                        multiplier &= {100.f, 100.f, 100.f};
+                        multiplier &= object.mat_d.light.color * 100.f;
                         break;
                     }
 
@@ -126,8 +126,19 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
 
                     pathtracer::vector out_sample_weight;
 
+                    pathtracer::vector tangent;
+                    pathtracer::vector bitangent;
+
+                    if (object.shape_t == pathtracer::TRIANGLE) {
+                        tangent = object.shape_d.triangle.tan1;
+                        bitangent = object.shape_d.triangle.tan2;
+                    } else {
+                        tangent = object.shape_d.sphere.world_tangent_at(comp.surface_point);
+                        bitangent = (tangent ^ comp.surface_normal).normalize();
+                    }
+
                     // bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
-                    bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy);
+                    bool eval_successful = pathtracer::eval_brdf_anisotropic(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy, tangent, bitangent);
 
                     if (!eval_successful) {
                         multiplier &= {0.f, 0.f, 0.f};
@@ -172,18 +183,19 @@ TEST_CASE("Cubemap renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::LIGHT,
              pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
+        obj0.mat_d.light = pathtracer::light({0.95f, 0.4f, 0.25});
 
         pathtracer::object obj1{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 0.9f, 0.2f, 0.f, 1.f, 0.04f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 1.f, 0.2f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f};
 
         pathtracer::object obj2{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.1f, 0.8f, 0.f, 1.f, 0.01f, 0.8f, 0.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.f, 1.f, 0.02f, 0.6f, 0.f};
 
 
         // pathtracer::world w({

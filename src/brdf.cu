@@ -155,16 +155,33 @@ namespace pathtracer {
     }
 
     __host__ __device__ float Fd_DisneyDiffuse(brdf_data data) {
-        float FD90MinusOne = 2.0f * data.roughness * data.l_dot_h * data.l_dot_h - 0.5f;
+        float FD90MinusOne = 2.f * data.roughness * data.l_dot_h * data.l_dot_h - 0.5f;
 
-        float FDL = 1.0f + (FD90MinusOne * pow(1.0f - data.n_dot_l, 5.0f));
-        float FDV = 1.0F + (FD90MinusOne * pow(1.0f - data.n_dot_v, 5.0f));
+        float FDL = 1.f + (FD90MinusOne * pow(1.0f - data.n_dot_l, 5.f));
+        float FDV = 1.f + (FD90MinusOne * pow(1.0f - data.n_dot_v, 5.f));
 
         return FDL * FDV * one_over_pi;
     }
 
     __host__ __device__ float V_Kelemen(float LoH) {
         return 0.25f / (LoH * LoH);
+    }
+
+    __host__ __device__ float D_GGX_Anisotropic(float NoH, const vec3 h, const vec3 t, const vec3 b, float at, float ab) {
+        float ToH = t * h;
+        float BoH = b * h;
+        float a2 = at * ab;
+        vec3 v = vec3(ab * ToH, at * BoH, a2 * NoH);
+        float v2 = v * v;
+        float w2 = a2 / v2;
+        return a2 * w2 * w2 * one_over_pi;
+    }
+
+    __host__ __device__ float V_SmithGGXCorrelated_Anisotropic(float at, float ab, float ToV, float BoV, float ToL, float BoL, float NoV, float NoL) {
+        float lambdaV = NoL * vec3(at * ToV, ab * BoV, NoV).mag();
+        float lambdaL = NoV * vec3(at * ToL, ab * BoL, NoL).mag();
+        float v = 0.5f / (lambdaV + lambdaL);
+        return minf(v, mediump_flt_max);
     }
 
     __device__ bool eval_brdf(float u, 
@@ -283,6 +300,94 @@ namespace pathtracer {
 
             return true;
         }        
+    }
+
+    __device__ bool eval_brdf_anisotropic(float u,
+                              float v,
+                              float t,
+                              float in_refractive_index,
+                              vector normal,
+                              vector view,
+                              vector& out_ray_direction,
+                              vec3& out_sample_weight,
+                              float& out_refractive_index,
+                              const microfacet& material,
+                              const vec3 tangent,
+                              const vec3 bitangent) {
+        if (0.f < t && t <= material.transmissiveness) {
+            // We sample the hemisphere
+            // around the perfectly refracted ray
+            vector incident = -view.normalize();
+            float n = in_refractive_index / material.refractive_index;
+            const float cos_i = -(normal * incident);
+            const float sin_t2 = n * n * (1.f - cos_i * cos_i);
+            const float cos_t = sqrtf(1.f - sin_t2);
+            vector refracted = (incident * n) + (normal * (n * cos_i - cos_t));
+            if (sin_t2 > 1.f) {
+                // We have Total Internal Reflection
+                if (normal * view > 0.f) {
+                    refracted = incident.reflect(normal);
+                } else {
+                    refracted = incident.reflect(-normal);
+                }
+            }
+            out_sample_weight = vec3(1.f, 1.f, 1.f) * 0.9f; // Replace with object's density
+            out_ray_direction = refracted.normalize();
+            if (normal * view <= 0.f) {
+                out_refractive_index = material.refractive_index;
+            } else {
+                out_refractive_index = 1.f; // Assume the ray leaves into a vacuum
+            }
+            return true;
+        } else {
+            // if (normal * view <= 0.f) return false;
+
+            const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
+            const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
+            vector normal_local{0.f, 0.f, 1.f};
+
+            float pdf;
+            pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+
+            // BRDF computations
+            const brdf_data data = gen_brdf_data(view_local, normal_local, ray_direction_local, material);
+
+            // perceptually linear roughness to roughness
+            float roughness = material.roughness * material.roughness;
+            float at = maxf(roughness * (1.f + material.anisotropy), 0.001f);
+            float ab = maxf(roughness * (1.f - material.anisotropy), 0.001f);
+            vec3 f0 = vec3(0.16f * material.reflectance * material.reflectance * (1.f - material.metalness)) + material.color * material.metalness;
+
+            float D = D_GGX_Anisotropic(data.n_dot_h, data.half, tangent, bitangent, at, ab);
+            vec3 F = F_Schlick(data.l_dot_h, f0);
+            float V = V_SmithGGXCorrelated_Anisotropic(at, ab, tangent * data.view, bitangent * data.view, tangent * data.light, bitangent * data.light, data.n_dot_v, data.n_dot_l);
+
+            // specular BRDF
+            vec3 Fr = F * (D * V);
+
+            // diffuse BRDF
+            vec3 diffuseColor = material.color * (1.0 - material.metalness);
+            vec3 Fd = diffuseColor * Fd_DisneyDiffuse(data);
+
+            // clear coat
+            float clear_coat_perceptual_roughness = minf(maxf(material.clear_coat_roughness, 0.089f), 1.f);
+            float clear_coat_roughness = clear_coat_perceptual_roughness * clear_coat_perceptual_roughness;
+
+            float  Dc = D_GGX(clear_coat_roughness, data.n_dot_h);
+            float Vc = V_SmithGGXCorrelated(data.n_dot_v, data.n_dot_l, clear_coat_roughness);
+            float  Fc = F_Schlick(0.04, data.l_dot_h).x * material.clear_coat_strength;
+            float Frc = (Dc * Vc) * Fc;
+
+            out_sample_weight = material.emission + ((Fr * (1.f - Fc)) + (Fd * (1.f - Fc)) + Frc) * (data.n_dot_l / (pdf));
+
+            // if (f_equal(luminance(out_sample_weight), 0.f)) return false;
+
+            out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
+
+            out_refractive_index = in_refractive_index;
+
+            return true;
+        }
     }
 
 }
