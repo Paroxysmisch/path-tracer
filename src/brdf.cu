@@ -305,17 +305,17 @@ namespace pathtracer {
     __device__ bool eval_brdf_anisotropic(float u,
                               float v,
                               float t,
-                              float in_refractive_index,
                               vector normal,
                               vector view,
                               vector& out_ray_direction,
                               vec3& out_sample_weight,
-                              float& out_refractive_index,
                               const microfacet& material,
                               const vec3 tangent,
                               const vec3 bitangent,
                               const float t_value,
-                              const bool from_inside) {
+                              const bool from_inside,
+                              float* refractive_idx_buffer,
+                              int& refractive_idx_buffer_ptr) {
         if (0.f < t && t <= material.transmissiveness) {
             // We sample the hemisphere
             // around the perfectly refracted ray
@@ -331,6 +331,7 @@ namespace pathtracer {
             normal = linear_interpolate(normal, perturbation, roughness);
 
             vector incident = -view.normalize();
+            float in_refractive_index = refractive_idx_buffer[refractive_idx_buffer_ptr];
             float n = in_refractive_index / material.refractive_index;
             const float cos_i = -(normal * incident);
             const float sin_t2 = n * n * (1.f - cos_i * cos_i);
@@ -338,11 +339,12 @@ namespace pathtracer {
             vector refracted = (incident * n) + (normal * (n * cos_i - cos_t));
             if (sin_t2 > 1.f) {
                 // We have Total Internal Reflection
-                if (normal * view > 0.f) {
-                    refracted = incident.reflect(normal);
-                } else {
-                    refracted = incident.reflect(-normal);
-                }
+                refracted = incident.reflect(normal);
+                // if (normal * view > 0.f) {
+                //     refracted = incident.reflect(normal);
+                // } else {
+                //     refracted = incident.reflect(-normal); // should be able to remove this as this never happens due to comp flipping normals when hitting from the inside of an object
+                // }
             }
 
             // float l_dot_h = min(max(0.f, out_ray_direction * (view + out_ray_direction).normalize()), 1.f);
@@ -350,14 +352,21 @@ namespace pathtracer {
             out_sample_weight = {1.f};
 
             if (from_inside) {
+                if (refractive_idx_buffer_ptr > 0) {
+                    refractive_idx_buffer_ptr -= 1;
+                }
                 out_sample_weight = {expf(-material.color.x * t_value * material.optical_density), expf(-material.color.y * t_value * material.optical_density), expf(-material.color.z * t_value * material.optical_density)};
+            } else {
+                // we are entering a new material
+                refractive_idx_buffer_ptr += 1;
+                refractive_idx_buffer[refractive_idx_buffer_ptr] = material.refractive_index;
             }
 
-            if (normal * view <= 0.f) {
-                out_refractive_index = material.refractive_index;
-            } else {
-                out_refractive_index = 1.f; // Assume the ray leaves into a vacuum
-            }
+            // if (normal * view <= 0.f) {
+            //     out_refractive_index = material.refractive_index;
+            // } else {
+            //     out_refractive_index = 1.f; // Assume the ray leaves into a vacuum
+            // }
             return true;
         } else {
             // if (normal * view <= 0.f) return false;
@@ -403,8 +412,6 @@ namespace pathtracer {
             // if (f_equal(luminance(out_sample_weight), 0.f)) return false;
 
             out_ray_direction = quaternion::rotate_vector_by_quaternion(ray_direction_local, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
-
-            out_refractive_index = in_refractive_index;
 
             return true;
         }

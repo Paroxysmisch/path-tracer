@@ -94,16 +94,16 @@ namespace pathtracer {
     __device__ bool eval_brdf_anisotropic(float u,
                                           float v,
                                           float t,
-                                          float in_refractive_index,
                                           vector normal,
                                           vector view,
                                           vector& out_ray_direction,
                                           vec3& out_sample_weight,
-                                          float& out_refractive_index,
                                           const microfacet& material,
                                           const vec3 tangent,
                                           const vec3 bitangent,
                                           const float t_value,
-                                          const bool from_inside);
+                                          const bool from_inside,
+                                          float* refractive_idx_buffer,
+                                          int& refractive_idx_buffer_ptr);
 
 }

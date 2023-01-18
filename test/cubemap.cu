@@ -46,6 +46,10 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
     constexpr int max_depth = 10;
     constexpr int num_samples = 1000;
 
+    float refraction_idx_buffer[max_depth + 1];
+    refraction_idx_buffer[0] = 1.f;
+    int refraction_idx_buffr_ptr = 0;
+
     while (i < 1000) {
         while (j < 1000) {
             pathtracer::vec3 color{0.f, 0.f, 0.f};
@@ -138,7 +142,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                     }
 
                     // bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
-                    bool eval_successful = pathtracer::eval_brdf_anisotropic(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy, tangent, bitangent, comp.intersection.t_value, comp.is_inside);
+                    bool eval_successful = pathtracer::eval_brdf_anisotropic(u, v, t, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, material_copy, tangent, bitangent, comp.intersection.t_value, comp.is_inside, refraction_idx_buffer, refraction_idx_buffr_ptr);
 
                     if (!eval_successful) {
                         multiplier &= {0.f, 0.f, 0.f};
@@ -195,7 +199,13 @@ TEST_CASE("Cubemap renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.95f, 1.3f, 0.02f, 0.6f, 0.f, 0.f, 0.5f, 1.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.95f, 1.1f, 0.02f, 0.6f, 0.f, 0.f, 0.5f, 1.f};
+
+        pathtracer::object obj3{pathtracer::SPHERE,
+             pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
+             pathtracer::MICROFACET,
+             pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
+        obj3.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.95f, 1.3f, 0.02f, 0.6f, 0.f, 0.f, 0.f, 1.f};
 
 
         // pathtracer::world w({
@@ -203,7 +213,7 @@ TEST_CASE("Cubemap renders") {
         // }, {"teapot_full.obj", "xy_wall.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f),  pathtracer::mat4::get_translation(0.f, 0.f, 1.f)}, {{"cursed.exr", 618, 1100}, {"landscape.exr", 1705, 2729}}, blocks, threads);
 
         pathtracer::world w({
-            &obj0, &obj1, &obj2
+            &obj0, &obj1, &obj2, &obj3
         }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, "env.exr", blocks, threads);
 
 
