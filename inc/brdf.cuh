@@ -102,6 +102,8 @@ namespace pathtracer {
                                           float& out_refractive_index,
                                           const microfacet& material,
                                           const vec3 tangent,
-                                          const vec3 bitangent);
+                                          const vec3 bitangent,
+                                          const float t_value,
+                                          const bool from_inside);
 
 }

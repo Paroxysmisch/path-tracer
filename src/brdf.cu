@@ -313,10 +313,23 @@ namespace pathtracer {
                               float& out_refractive_index,
                               const microfacet& material,
                               const vec3 tangent,
-                              const vec3 bitangent) {
+                              const vec3 bitangent,
+                              const float t_value,
+                              const bool from_inside) {
         if (0.f < t && t <= material.transmissiveness) {
             // We sample the hemisphere
             // around the perfectly refracted ray
+            // where the perfectly refracted ray is calculated from a perturbed normal
+
+            // Random perturbation to normal
+            const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
+            float pdf;
+            pathtracer::point random_ray = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            vector perturbation = quaternion::rotate_vector_by_quaternion(random_ray, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
+
+            float roughness = powf(material.transmissive_roughness, 4.f);
+            normal = linear_interpolate(normal, perturbation, roughness);
+
             vector incident = -view.normalize();
             float n = in_refractive_index / material.refractive_index;
             const float cos_i = -(normal * incident);
@@ -331,8 +344,15 @@ namespace pathtracer {
                     refracted = incident.reflect(-normal);
                 }
             }
-            out_sample_weight = vec3(1.f, 1.f, 1.f) * 0.9f; // Replace with object's density
+
+            // float l_dot_h = min(max(0.f, out_ray_direction * (view + out_ray_direction).normalize()), 1.f);
             out_ray_direction = refracted.normalize();
+            out_sample_weight = {1.f};
+
+            if (from_inside) {
+                out_sample_weight = {expf(-material.color.x * t_value * material.optical_density), expf(-material.color.y * t_value * material.optical_density), expf(-material.color.z * t_value * material.optical_density)};
+            }
+
             if (normal * view <= 0.f) {
                 out_refractive_index = material.refractive_index;
             } else {

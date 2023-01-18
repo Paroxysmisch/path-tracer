@@ -111,6 +111,8 @@ namespace pathtracer {
         float clear_coat_strength = 0.f;
         float clear_coat_roughness = 0.f;
         float anisotropy = 0.f;
+        float transmissive_roughness = 0.f;
+        float optical_density = 0.f;
     };
 
     struct light {

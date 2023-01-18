@@ -138,7 +138,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                     }
 
                     // bool eval_successful = pathtracer::eval_brdf(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, object.mat_d.microfacet);
-                    bool eval_successful = pathtracer::eval_brdf_anisotropic(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy, tangent, bitangent);
+                    bool eval_successful = pathtracer::eval_brdf_anisotropic(u, v, t, current_refractive_index, comp.surface_normal, comp.eye_vector, out_ray_direction, out_sample_weight, current_refractive_index, material_copy, tangent, bitangent, comp.intersection.t_value, comp.is_inside);
 
                     if (!eval_successful) {
                         multiplier &= {0.f, 0.f, 0.f};
@@ -189,13 +189,13 @@ TEST_CASE("Cubemap renders") {
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 1.f, 0.2f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 1.f, 0.2f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
         pathtracer::object obj2{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.f, 1.f, 0.02f, 0.6f, 0.f};
+        obj2.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.95f, 1.3f, 0.02f, 0.6f, 0.f, 0.f, 0.5f, 1.f};
 
 
         // pathtracer::world w({
