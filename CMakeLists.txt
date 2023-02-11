@@ -62,6 +62,7 @@ set(test_sources
     brdf.cu
     mesh.cu
     cubemap.cu
+    free_world.cu
 )
 
 list(TRANSFORM test_sources PREPEND "test/")

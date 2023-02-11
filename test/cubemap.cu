@@ -233,5 +233,7 @@ TEST_CASE("Cubemap renders") {
         c.export_as_PPM("Cubemap_Test_GPU.ppm");
         c.export_as_EXR("Cubemap_Test_GPU.exr");
         pathtracer::denoise(canvas_pixels, canvas_pixels, "Cubemap_Test_GPU.exr", w, camera, "Cubemap_Test_GPU_denoised.exr");
+
+        w.free_world();
     }
 }

@@ -32,6 +32,8 @@ namespace pathtracer {
         float* environment_map;
         int environment_map_height;
         int environment_map_width;
+        int textures_length;
+        bool* is_texture_idx_valid;
 
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 
@@ -42,6 +44,8 @@ namespace pathtracer {
         __host__ __device__ computations prepare_computations(const intersection& intersection, const ray& r);
 
         __host__ __device__ computations intersect_world(const ray& r, bool& success_flag, int* collision_buffer, pathtracer::intersection* intersection_buffer);
+
+        __host__ void free_world();
     };
 
 }

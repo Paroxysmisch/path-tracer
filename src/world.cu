@@ -59,6 +59,7 @@ namespace pathtracer {
 
     world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, const std::string environment_map_filename, dim3 blocks, dim3 threads) {
         int total_objects{static_cast<int>(l.size())};
+        textures_length = obj_filenames.size();
         objl::Loader loader;
 
         // Calculate the total number of objects
@@ -92,7 +93,12 @@ namespace pathtracer {
 
         }
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&textures), obj_filenames.size() * sizeof(float*)) );
+        checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&is_texture_idx_valid), obj_filenames.size() * sizeof(bool)) );
         checkCudaErrors( cudaMallocManaged(reinterpret_cast<void**>(&(this->texture_datas)), obj_filenames.size() * sizeof(texture_data)) );
+
+        for (int i{0}; i < obj_filenames.size(); ++i) {
+            is_texture_idx_valid[i] = false;
+        }
 
         // Build the objects
         int current_object{0};
@@ -144,6 +150,7 @@ namespace pathtracer {
                     free(out); // release memory of image data
                 }
                 texture_idx = f;
+                is_texture_idx_valid[f] = true;
 
                 // for (int p{0}; p < width * height * 4; p += 4) {
                 //     std::cout << textures[f][p] << " " << textures[f][p + 1] << " " << textures[f][p + 2] << " " << textures[f][p + 3] << " " << std::endl;
@@ -305,6 +312,22 @@ namespace pathtracer {
             success_flag = false;
             return {};
         }
+    }
+
+    __host__ void world::free_world() {
+        arena->free_arena();
+        checkCudaErrors( cudaFree(objects) );
+        checkCudaErrors( cudaFree(collision_buffer) );
+        checkCudaErrors( cudaFree(intersection_buffer) );
+        checkCudaErrors( cudaFree(texture_datas) );
+        checkCudaErrors( cudaFree(environment_map) );
+
+        for (int i{0}; i < textures_length; ++i) {
+            checkCudaErrors( cudaFree(textures[i]) );
+        }
+
+        checkCudaErrors( cudaFree(textures) );
+        checkCudaErrors( cudaFree(is_texture_idx_valid) );
     }
 
 }
