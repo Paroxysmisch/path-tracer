@@ -22,6 +22,14 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
     int num_threads_i = blockDim.y * gridDim.y;
     int num_threads_j = blockDim.x * gridDim.x;
 
+    extern __shared__ float s[];
+    float* x = s;
+    float* x_2 = &x[blockDim.x * blockDim.y];
+    const int adaptive_sampling_rate = 50;
+    const int threads_per_block = blockDim.y * blockDim.x;
+    const float adaptive_sampling_variance_threshold = 0.05f;
+    bool enable_adaptive_sampling = true;
+
     curandState* state = &d_states[i * num_threads_j + j];
     curand_init(1234, i * num_threads_j + j, 0, state);
 
@@ -53,6 +61,8 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
     while (i < 1000) {
         while (j < 1000) {
             pathtracer::vec3 color{0.f, 0.f, 0.f};
+            int num_samples_taken{-1};
+            pathtracer::vec3 color_2{0.f, 0.f, 0.f};
 
             for (int k{0}; k < num_samples; ++k) {
                 // floats a and b for anti-aliasing
@@ -159,9 +169,49 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
                 }
 
                 color += multiplier;
+                color_2 += (multiplier & multiplier);
+
+                if (enable_adaptive_sampling && (k > 0) && (k % adaptive_sampling_rate == 0)) {
+                    pathtracer::vec3 mu = color / k;
+                    pathtracer::vec3 variance = (color_2 - ((color & color) / k)) * (1.f / (k - 1));
+                    variance.x = sqrtf(fabsf(variance.x));
+                    variance.y = sqrtf(fabsf(variance.y));
+                    variance.z = sqrtf(fabsf(variance.z));
+
+                    pathtracer::vec3 convergence = variance * (1.96f / sqrtf(k));
+
+                    // int adaptive_sampling_idx = threadIdx.y * blockDim.x + threadIdx.x;
+                    // pathtracer::vec3 cur_color = color / k;
+
+                    // x_2[adaptive_sampling_idx] = cur_color.mag_2() * cur_color.mag_2();
+                    // x[adaptive_sampling_idx] = cur_color.mag_2();
+
+                    // __syncthreads();
+
+                    // for(unsigned int s = threads_per_block / 2; s > 0; s>>=1) {
+                    //     if (adaptive_sampling_idx < s) {
+                    //         x[adaptive_sampling_idx] += x[adaptive_sampling_idx + s];
+                    //         x_2[adaptive_sampling_idx] += x_2[adaptive_sampling_idx + s];
+                    //     }
+                    //     __syncthreads();
+                    // }
+
+                    // float variance = (x_2[0] / threads_per_block) - (x[0] / threads_per_block) * (x[0] / threads_per_block);
+
+                    if (convergence.x < adaptive_sampling_variance_threshold * mu.x &&
+                        convergence.y < adaptive_sampling_variance_threshold * mu.y &&
+                        convergence.z < adaptive_sampling_variance_threshold * mu.z ) {
+                        num_samples_taken = k;
+                        break;
+                    }
+                }
             }
 
-            color /= num_samples;
+            if (num_samples_taken == -1) {
+                color /= num_samples;
+            } else {
+                color /= num_samples_taken;
+            }
                 
             c.write_pixel(i, j, color);
             
@@ -226,7 +276,7 @@ TEST_CASE("Cubemap renders") {
 
         checkCudaErrors( cudaMalloc(reinterpret_cast<void**>(&d_states), blocks.y * blocks.x * threads.y * threads.x * sizeof(curandState)) );
 
-        cubemap_test<<<blocks, threads>>>(c, w, camera, d_states);
+        cubemap_test<<<blocks, threads, 2 * threads.y * threads.x * sizeof(float)>>>(c, w, camera, d_states);
 
         checkCudaErrors( cudaDeviceSynchronize() );
 
