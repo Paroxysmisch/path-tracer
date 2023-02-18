@@ -34,6 +34,8 @@ namespace pathtracer {
         int environment_map_width;
         int textures_length;
         bool* is_texture_idx_valid;
+        dim3 blocks;
+        dim3 threads;
 
         world(const std::initializer_list<object> l, dim3 blocks, dim3 threads);
 

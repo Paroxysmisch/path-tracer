@@ -52,7 +52,7 @@ __global__ void cubemap_test(pathtracer::canvas c, pathtracer::world world, path
     pathtracer::intersection* intersection_buffer = (world.intersection_buffer + intersection_buffer_offset);
 
     constexpr int max_depth = 10;
-    constexpr int num_samples = 1000;
+    constexpr int num_samples = 100;
 
     float refraction_idx_buffer[max_depth + 1];
     refraction_idx_buffer[0] = 1.f;

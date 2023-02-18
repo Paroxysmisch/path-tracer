@@ -58,6 +58,8 @@ namespace pathtracer {
     }
 
     world::world(const std::vector<object*> l, const std::vector<std::string> obj_filenames, const std::vector<mat4> obj_to_world_transformations, const std::vector<texture_data> texture_datas, const std::string environment_map_filename, dim3 blocks, dim3 threads) {
+        this->blocks = blocks;
+        this->threads = threads;
         int total_objects{static_cast<int>(l.size())};
         textures_length = obj_filenames.size();
         objl::Loader loader;

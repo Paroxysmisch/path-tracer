@@ -20,7 +20,6 @@ if(TINYEXR_USE_MINIZ)
 endif()
 
 set(path_tracer_sources
-    main.cu
     check_cuda_errors.cu
     tinyexr.cc
     util.cu
@@ -33,6 +32,8 @@ set(path_tracer_sources
     camera.cu
     brdf.cu
     denoise.cu
+    render.cu
+    main.cu
 )
 
 list(TRANSFORM path_tracer_sources PREPEND "src/")
