@@ -133,6 +133,33 @@ namespace pathtracer {
         return result;
     }
 
+    __host__ __device__ point ggx_sample_hemisphere(float u, float v, float roughness, const vec3 view_local, const vec3 normal_local, float& out_pdf) {
+        float phi = 2.f * pi * u;
+        float theta = acos(sqrt((1.0f - v)/
+                                    ((roughness * roughness - 1.0f) * v + 1.0f)
+                                  )
+                          );
+
+        point result {
+            sinf(theta) * cosf(phi),
+            sinf(theta) * sinf(phi),
+            cosf(theta)
+        };
+        result = result.normalize();
+
+        vec3 h = (view_local + result).normalize();
+        float hdotn = minf(maxf(0.000001f, h * normal_local), 1.f);
+        float vdoth = minf(maxf(0.000001f, view_local * h), 1.f);
+
+        float t = hdotn*hdotn*roughness*roughness - (hdotn*hdotn - 1.0f);
+        float D = (roughness*roughness)*(1.f / ((t*t) + epsilon))*one_over_pi;
+        // out_pdf = D*hdotn*(1.f / ((4.0f*fabsf(vdoth)) + epsilon));
+        out_pdf = D_GGX(hdotn, roughness) * hdotn / (4 * vdoth);
+
+        return result;
+
+    }
+
     __host__ __device__ float D_GGX(float NoH, float roughness) {
         float a = NoH * roughness;
         float k = roughness / (1.f - NoH * NoH + a * a);
@@ -324,7 +351,13 @@ namespace pathtracer {
             // Random perturbation to normal
             const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
             float pdf;
-            pathtracer::point random_ray = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            // pathtracer::point random_ray = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
+            vector _view_local = -view_local;
+            vector normal_local{0.f, 0.f, 1.f};
+            pathtracer::point random_ray = pathtracer::ggx_sample_hemisphere(u, v, material.roughness * material.roughness, view_local, normal_local, pdf);
+            random_ray =_view_local.reflect(random_ray);
+
             vector perturbation = quaternion::rotate_vector_by_quaternion(random_ray, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
 
             float roughness = powf(material.transmissive_roughness, 4.f);
@@ -376,7 +409,12 @@ namespace pathtracer {
             vector normal_local{0.f, 0.f, 1.f};
 
             float pdf;
-            pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            // pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            point _ray_direction_local = pathtracer::ggx_sample_hemisphere(u, v, material.roughness * material.roughness, view_local, normal_local, pdf);
+            vector _view_local = -view_local;
+
+            // point ray_direction_local = _view_local - (_ray_direction_local * 2 * (_view_local * _ray_direction_local));
+            point ray_direction_local = _view_local.reflect(_ray_direction_local).normalize();
 
             // BRDF computations
             const brdf_data data = gen_brdf_data(view_local, normal_local, ray_direction_local, material);
