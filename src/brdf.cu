@@ -160,6 +160,58 @@ namespace pathtracer {
 
     }
 
+    // __host__ __device__ point ggx_vndf_sample_hemisphere(float u, float v, float roughness, const vec3 Ve, float& out_pdf) {
+    //     vec3 Vh = vec3(roughness * Ve.x, roughness * Ve.y, Ve.z).normalize();
+
+    //     float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+    //     vec3 T1 = lensq > 0.f ? vec3(-Vh.y, Vh.x, 0.f) * (1.f / sqrtf(lensq)) : vec3(0.f, 0.f, 1.f);
+    //     vec3 T2 = Vh ^ T1;
+
+    //     float r = sqrtf(u);
+    //     float phi = 2.f * pi * v;
+    //     float t1 = r * cos(phi);
+    //     float t2 = r * sin(phi);
+    //     float s = 0.5f * (1.f + Vh.z);
+    //     t2 = (1.f - s) * sqrtf(1.f - t1 * t1) + s * t2;
+
+    //     vec3 Nh = T1 * t1 + T2 * t2 + Vh * sqrtf(maxf(0.f, 1.f - t1*t1- t2*t2));
+    //     vec3 Ne = vec3(roughness * Nh.x, roughness * Nh.y, maxf(0.f, Nh.z)).normalize();
+
+    //     return Ne;
+    // }
+
+    __host__ __device__ point power_cosine_sample_hemisphere(float u, float v, float power, float& out_pdf) {
+        float phi = 2.f * pi * u;
+        float theta = acosf(powf(v, 1.f / (power + 1.f)));
+
+        point result {
+            sinf(theta) * cosf(phi),
+            sinf(theta) * sinf(phi),
+            cosf(theta)
+        };
+        result = result.normalize();
+
+        out_pdf = 0.5f * one_over_pi * (power + 1.f) * powf(cosf(theta), power) * sinf(theta);
+
+        return result;
+    }
+
+    __host__ __device__ point uniform_sample_hemisphere(float u, float v, float& out_pdf) {
+        float phi = 2.f * pi * u;
+        float theta = acosf(v);
+
+        point result {
+            sinf(theta) * cosf(phi),
+            sinf(theta) * sinf(phi),
+            cosf(theta)
+        };
+        result = result.normalize();
+
+        out_pdf = 0.5f * one_over_pi * sinf(theta);
+
+        return result;
+    }
+
     __host__ __device__ float D_GGX(float NoH, float roughness) {
         float a = NoH * roughness;
         float k = roughness / (1.f - NoH * NoH + a * a);
@@ -351,12 +403,12 @@ namespace pathtracer {
             // Random perturbation to normal
             const quaternion q_normal_rotation_to_z = quaternion::get_rotation_to_z_axis(normal);
             float pdf;
-            // pathtracer::point random_ray = pathtracer::cosine_sample_hemisphere(u, v, pdf);
-            const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
-            vector _view_local = -view_local;
-            vector normal_local{0.f, 0.f, 1.f};
-            pathtracer::point random_ray = pathtracer::ggx_sample_hemisphere(u, v, material.roughness * material.roughness, view_local, normal_local, pdf);
-            random_ray =_view_local.reflect(random_ray);
+            pathtracer::point random_ray = pathtracer::power_cosine_sample_hemisphere(u, v, 1.f, pdf);
+            // const vector view_local = quaternion::rotate_vector_by_quaternion(view, q_normal_rotation_to_z);
+            // vector _view_local = -view_local;
+            // vector normal_local{0.f, 0.f, 1.f};
+            // pathtracer::point random_ray = pathtracer::ggx_sample_hemisphere(u, v, material.roughness * material.roughness, view_local, normal_local, pdf);
+            // random_ray =_view_local.reflect(random_ray);
 
             vector perturbation = quaternion::rotate_vector_by_quaternion(random_ray, quaternion::get_inverse_rotation(q_normal_rotation_to_z)).normalize();
 
@@ -410,6 +462,7 @@ namespace pathtracer {
 
             float pdf;
             // pathtracer::point ray_direction_local = pathtracer::cosine_sample_hemisphere(u, v, pdf);
+            // pathtracer::point ray_direction_local = pathtracer::uniform_sample_hemisphere(u, v, pdf);
             point _ray_direction_local = pathtracer::ggx_sample_hemisphere(u, v, material.roughness * material.roughness, view_local, normal_local, pdf);
             vector _view_local = -view_local;
 

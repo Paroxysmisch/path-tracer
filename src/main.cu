@@ -23,7 +23,7 @@ int main() {
              pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
              pathtracer::MICROFACET,
              pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 1.f, 0.1f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+        obj1.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.25f, 0.85f}, {0.f, 0.f, 0.f}, 1.f, 0.18f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
         pathtracer::object obj2{pathtracer::SPHERE,
              pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
@@ -49,7 +49,7 @@ int main() {
         std::string filename2 = "main_render_AS";
 
         pathtracer::render(camera, world, filename1, 100, false, 0.05f);
-        pathtracer::render(camera, world, filename2, 2000, true, 0.05f);
+        pathtracer::render(camera, world, filename2, 200, true, 0.05f);
 
         world.free_world();
 

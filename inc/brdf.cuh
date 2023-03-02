@@ -66,6 +66,12 @@ namespace pathtracer {
 
     __host__ __device__ point ggx_sample_hemisphere(float u, float v, float roughness, const vec3 view_local, const vec3 normal_local, float& out_pdf);
 
+    // __host__ __device__ point ggx_vndf_sample_hemisphere(float u, float v, float roughness, const vec3 view_local, float& out_pdf);
+
+    __host__ __device__ point power_cosine_sample_hemisphere(float u, float v, float power, float& out_pdf);
+
+    __host__ __device__ point uniform_sample_hemisphere(float u, float v, float& out_pdf);
+
     __host__ __device__ float D_GGX(float NoH, float roughness);
 
     __host__ __device__ vec3 F_Schlick(float u, vec3 f0);
