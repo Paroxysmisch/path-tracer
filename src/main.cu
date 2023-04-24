@@ -53,7 +53,7 @@ int main() {
      // world.free_world();
 
      pathtracer::object obj0{pathtracer::SPHERE,
-          pathtracer::sphere(pathtracer::mat4::get_translation(-0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.25f, 0.25f, 0.25f)),
+          pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, -0.8f) * pathtracer::mat4::get_scaling(0.125f, 0.125f, 0.125f)),
           pathtracer::LIGHT,
           pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
      obj0.mat_d.light = pathtracer::light({0.95f, 0.85f, 0.85f});
@@ -62,31 +62,31 @@ int main() {
           pathtracer::sphere(pathtracer::mat4::get_translation(-0.76f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
           pathtracer::MICROFACET,
           pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-     obj1.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.80f, 0.5f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+     obj1.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.80f, 0.5f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
      pathtracer::object obj2{pathtracer::SPHERE,
           pathtracer::sphere(pathtracer::mat4::get_translation(-0.35f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
           pathtracer::MICROFACET,
           pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-     obj2.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.85f, 0.25f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+     obj2.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.85f, 0.25f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
      pathtracer::object obj3{pathtracer::SPHERE,
           pathtracer::sphere(pathtracer::mat4::get_translation(0.f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
           pathtracer::MICROFACET,
           pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-     obj3.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.90f, 0.18f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+     obj3.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.90f, 0.18f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
      pathtracer::object obj4{pathtracer::SPHERE,
           pathtracer::sphere(pathtracer::mat4::get_translation(0.35f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
           pathtracer::MICROFACET,
           pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-     obj4.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.95f, 0.14f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+     obj4.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.95f, 0.14f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
      pathtracer::object obj5{pathtracer::SPHERE,
           pathtracer::sphere(pathtracer::mat4::get_translation(0.76f, 0.f, 0.f) * pathtracer::mat4::get_scaling(0.15f, 0.15f, 0.15f)),
           pathtracer::MICROFACET,
           pathtracer::phong{{0.f, 0.f, 0.f}, 0.f, 0.f, 0.f, 0.f}};
-     obj5.mat_d.microfacet = pathtracer::microfacet{{0.95f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.99f, 0.1f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
+     obj5.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.99f, 0.1f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
 
      dim3 blocks(16, 16);
@@ -99,8 +99,8 @@ int main() {
      std::string filename1 = "materials_demo_no_AS";
      std::string filename2 = "materials_demo_AS";
 
-     pathtracer::render(camera, world, filename1, 100, false, 0.05f);
-     // pathtracer::render(camera, world, filename2, 1000, true, 0.05f);
+     // pathtracer::render(camera, world, filename1, 100, false, 0.05f);
+     pathtracer::render(camera, world, filename2, 1000, true, 0.05f);
 
      world.free_world();
 
