@@ -98,13 +98,13 @@ int main() {
           &obj0, &obj1, &obj2, &obj3, &obj4, &obj5
      }, {}, {}, {}, "mountains.exr", blocks, threads);
 
-     std::string filename1 = "1_1024_off_4";
-     std::string filename2 = "materials_demo_AS";
+     // std::string filename1 = "1_1024_off_16";
+     std::string filename2 = "1_1024_on_4_AS";
 
      auto start = std::chrono::high_resolution_clock::now();
 
-     pathtracer::render(camera, world, filename1, 1024, false, 0.05f);
-     // pathtracer::render(camera, world, filename2, 1000, true, 0.05f);
+     // pathtracer::render(camera, world, filename1, 1024, false, 0.05f);
+     pathtracer::render(camera, world, filename2, 1024, true, 0.05f);
 
      auto stop = std::chrono::high_resolution_clock::now();
      std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);

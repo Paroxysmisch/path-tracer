@@ -5,7 +5,7 @@ import pickle
 
 scene = '1'
 spp = '1024'
-adap_samp = 'off'
+adap_samp = 'on'
 tiling = '4'
 run = '2'
 
