@@ -3,12 +3,13 @@ import os
 import atexit
 import pickle
 
-scene = '0'
-spp = '4'
+scene = '1'
+spp = '1024'
 adap_samp = 'off'
 tiling = '4'
+run = '2'
 
-filename = 'log_' + scene + '_' + spp + '_' + adap_samp + '_' + tiling
+filename = 'log_' + scene + '_' + spp + '_' + adap_samp + '_' + tiling + '_' + run
 
 data = []
 

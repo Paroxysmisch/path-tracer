@@ -6,6 +6,8 @@
 #include "constants.h"
 #include "world.cuh"
 #include "render.cuh"
+#include <chrono>
+#include <ratio>
 
 int main() {
     std::cout << "Hello World" << std::endl;
@@ -89,18 +91,24 @@ int main() {
      obj5.mat_d.microfacet = pathtracer::microfacet{{0.90f, 0.25f, 0.05f}, {0.f, 0.f, 0.f}, 0.99f, 0.1f, 0.f, 1.f, 0.04f, 0.f, 0.f, 0.25f, 0.f, 1.f};
 
 
-     dim3 blocks(16, 16);
-     dim3 threads(16, 16);
+     dim3 blocks(64, 64);
+     dim3 threads(4, 4);
 
      pathtracer::world world({
           &obj0, &obj1, &obj2, &obj3, &obj4, &obj5
      }, {}, {}, {}, "mountains.exr", blocks, threads);
 
-     std::string filename1 = "materials_demo_no_AS";
+     std::string filename1 = "1_1024_off_4";
      std::string filename2 = "materials_demo_AS";
 
-     // pathtracer::render(camera, world, filename1, 100, false, 0.05f);
-     pathtracer::render(camera, world, filename2, 1000, true, 0.05f);
+     auto start = std::chrono::high_resolution_clock::now();
+
+     pathtracer::render(camera, world, filename1, 1024, false, 0.05f);
+     // pathtracer::render(camera, world, filename2, 1000, true, 0.05f);
+
+     auto stop = std::chrono::high_resolution_clock::now();
+     std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+     std::cout << duration.count() << std::endl;
 
      world.free_world();
 
