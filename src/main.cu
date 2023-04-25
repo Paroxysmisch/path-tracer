@@ -39,14 +39,14 @@ int main() {
      obj3.mat_d.microfacet = pathtracer::microfacet{{0.35f, 0.85f, 0.45f}, {0.f, 0.f, 0.f}, 0.f, 0.8f, 0.95f, 1.3f, 0.02f, 0.6f, 0.f, 0.f, 0.f, 1.f};
 
 
-     dim3 blocks(32, 32);
-     dim3 threads(16, 16);
+     dim3 blocks(256, 256);
+     dim3 threads(2, 2);
 
      pathtracer::world world({
           &obj0, &obj1, &obj2, &obj3
      }, {"teapot_full.obj"}, {pathtracer::mat4::get_scaling(0.01f, 0.01f, 0.01f)}, {{"cursed.exr", 618, 1100}}, "env.exr", blocks, threads);
 
-     std::string filename1 = "0_128_16";
+     std::string filename1 = "0_128_2";
      // std::string filename2 = "main_render_AS";
 
      auto start = std::chrono::high_resolution_clock::now();
