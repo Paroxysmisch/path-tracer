@@ -4,10 +4,10 @@ import atexit
 import pickle
 
 scene = '0'
-spp = '128'
+spp = '4096'
 adap_samp = 'off'
 tiling = '16'
-run = '2'
+run = '4'
 
 filename = 'log_' + scene + '_' + spp + '_' + adap_samp + '_' + tiling + '_' + run
 
