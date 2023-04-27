@@ -210,10 +210,14 @@ namespace pathtracer {
                         // objects[current_object].shape_d.triangle.normal = average_normal;
                         objects[current_object].mat_t = MICROFACET;
                         vec3 color{
-                            curMesh.MeshMaterial.Ka.X,
-                            curMesh.MeshMaterial.Ka.Y,
-                            curMesh.MeshMaterial.Ka.Z
+                            curMesh.MeshMaterial.Kd.X,
+                            curMesh.MeshMaterial.Kd.Y,
+                            curMesh.MeshMaterial.Kd.Z
                         };
+                        // if (curMesh.MeshMaterial.name == "Gold Metal" || curMesh.MeshMaterial.name == "Gold Metall") color = {0.95f, 0.95f, 0.95f};
+                        if (curMesh.MeshName == "solar_panels" || curMesh.MeshName == "instruments") {
+                            color = {0.62f, 0.46f, 0.063f};
+                        } else color = {1.f, 0.99f, 1.f};
                         objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, 0.3f, 0.f, 4.f, 0.04f, 0.f, 0.f, -0.3f};
                         ++current_object;
                     }
