@@ -131,8 +131,8 @@ int main() {
           pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
      obj0.mat_d.light = pathtracer::light({0.95f, 0.85f, 0.85f});
 
-     dim3 blocks(32, 32);
-     dim3 threads(16, 16);
+     dim3 blocks(128, 128);
+     dim3 threads(2, 2);
 
      // pathtracer::world world({
      //      &obj0,
@@ -143,12 +143,12 @@ int main() {
      }, {"ICESat2.obj"}, {pathtracer::mat4::get_translation(0.f, 0.f, 0.f) * pathtracer::mat4::get_rotation_y(pathtracer::pi / 2.5f) * pathtracer::mat4::get_rotation_z(pathtracer::pi * 0.75f) * pathtracer::mat4::get_rotation_x(pathtracer::pi / 2.f) * pathtracer::mat4::get_scaling(0.1f, 0.1f, 0.1f)}, {{"", 618, 1100}}, "starmap_g8k.exr", blocks, threads);
 
 
-     std::string filename1 = "test";
+     std::string filename1 = "tile_test";
      // std::string filename2 = "1_1024_on_4_AS";
 
      auto start = std::chrono::high_resolution_clock::now();
 
-     pathtracer::render(camera, world, filename1, 128, false, 0.05f);
+     pathtracer::render(camera, world, filename1, 256, false, 0.05f);
      // pathtracer::render(camera, world, filename2, 1024, true, 0.05f);
 
      auto stop = std::chrono::high_resolution_clock::now();
