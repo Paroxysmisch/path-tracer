@@ -23,6 +23,30 @@ namespace pathtracer {
     using vector = vec3;
     using color = vec3;
 
+    struct vec3_d {
+        double x;
+        double y;
+        double z;
+
+        __host__ __device__ vec3_d();
+
+        __host__ __device__ vec3_d(float x, float y, float z);
+
+        __host__ __device__ vec3_d(double x, double y, double z);
+
+        __host__ __device__ vec3_d& operator+=(const vec3& other);
+
+        __host__ __device__ vec3_d operator&(const vec3_d& other) const;
+
+        __host__ __device__ vec3 operator-(const float scalar);
+
+        __host__ __device__ vec3 operator-(const vec3& other);
+
+        __host__ __device__ vec3 operator/(const float scalar);
+
+        __host__ __device__ vec3_d& operator/=(const float scalar);
+    };
+
     struct vec3 {
         float x;
         float y;

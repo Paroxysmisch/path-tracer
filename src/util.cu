@@ -9,6 +9,42 @@ namespace pathtracer {
         return fabs(a - b) < epsilon;
     }
 
+    __host__ __device__ vec3_d::vec3_d() {}
+
+    __host__ __device__ vec3_d::vec3_d(float x, float y, float z): x(x), y(y), z(z) {}
+
+    __host__ __device__ vec3_d::vec3_d(double x, double y, double z): x(x), y(y), z(z) {}
+
+    __host__ __device__ vec3_d& vec3_d::operator+=(const vec3& other) {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
+
+    __host__ __device__ vec3_d vec3_d::operator&(const vec3_d& other) const {
+        return vec3_d{x * other.x, y * other.y, z * other.z};
+    }
+
+    __host__ __device__ vec3 vec3_d::operator-(const float scalar) {
+        return vec3{static_cast<float>(x - scalar), static_cast<float>(y - scalar), static_cast<float>(z - scalar)};
+    };
+
+    __host__ __device__ vec3 vec3_d::operator-(const vec3& other) {
+        return vec3{static_cast<float>(x - other.x), static_cast<float>(y - other.y), static_cast<float>(z - other.z)};
+    };
+
+    __host__ __device__ vec3 vec3_d::operator/(const float scalar) {
+        return vec3{static_cast<float>(x / scalar), static_cast<float>(y / scalar), static_cast<float>(z / scalar)};
+    };
+
+    __host__ __device__ vec3_d& vec3_d::operator/=(const float scalar) {
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
+        return *this;
+    }
+
     __host__ __device__ vec3::vec3() {}
 
     __host__ __device__ vec3::vec3(float x, float y, float z): x(x), y(y), z(z) {}

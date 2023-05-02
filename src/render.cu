@@ -1,5 +1,6 @@
 #include "denoise.cuh"
 #include "render.cuh"
+#include "util.cuh"
 
 namespace pathtracer {
 
@@ -45,9 +46,9 @@ namespace pathtracer {
 
         while (i < c.m_height) {
             while (j < c.m_width) {
-                vec3 color{0.f, 0.f, 0.f};
+                vec3_d color{0.f, 0.f, 0.f};
                 int num_samples_taken{-1};
-                vec3 color_2{0.f, 0.f, 0.f};
+                vec3_d color_2{0.f, 0.f, 0.f};
 
                 for (int k{0}; k < num_samples; ++k) {
                     // floats a and b for anti-aliasing
@@ -103,7 +104,7 @@ namespace pathtracer {
                         float t = curand_uniform(state);
 
                         if (object.mat_t == LIGHT) {
-                            multiplier &= object.mat_d.light.color * 100.f;
+                            multiplier &= object.mat_d.light.color * 16.f;
                             break;
                         }
 
@@ -131,12 +132,29 @@ namespace pathtracer {
 
                         multiplier &= out_sample_weight;
 
+                        // Russian Roulette
+                        float p = maxf(multiplier.x, maxf(multiplier.y, multiplier.z));
+                        float c = curand_uniform(state);
+                        if (c > p) {
+                            break;
+                        }
+
+                        // Add energy lost due to Russian Roulette
+                        multiplier /= p;
+
+
                         if ((0.f < t && t <= object.mat_d.microfacet.transmissiveness)) {
                             ray = pathtracer::ray(comp.surface_point + ((-comp.surface_normal) * 0.01f), out_ray_direction);
                         } else {
                             ray = pathtracer::ray(comp.surface_point + (comp.surface_normal * 0.01f), out_ray_direction);
                         }
                     }
+
+                    // Radiance clamping
+                    float clamp_value = 16.f;
+                    multiplier.x = minf(multiplier.x, clamp_value);
+                    multiplier.y = minf(multiplier.y, clamp_value);
+                    multiplier.z = minf(multiplier.z, clamp_value);
 
                     color += multiplier;
                     color_2 += (multiplier & multiplier);
@@ -165,7 +183,7 @@ namespace pathtracer {
                     color /= num_samples_taken;
                 }
                     
-                c.write_pixel(i, j, color);
+                c.write_pixel(i, j, {static_cast<float>(color.x), static_cast<float>(color.y), static_cast<float>(color.z)});
                 
                 j += num_threads_j;
             }
