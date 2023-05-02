@@ -126,7 +126,7 @@ int main() {
 
 
      pathtracer::object obj0{pathtracer::SPHERE,
-          pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, -0.5f) * pathtracer::mat4::get_scaling(0.35f, 0.35f, 0.35f)),
+          pathtracer::sphere(pathtracer::mat4::get_translation(0.5f, 0.f, -0.4f) * pathtracer::mat4::get_scaling(0.40f, 0.40f, 0.40f)),
           pathtracer::LIGHT,
           pathtracer::phong({0.95f, 0.25f, 0.5f}, 0.3, 0.7, 0.5, 10)};
      obj0.mat_d.light = pathtracer::light({0.95f, 0.85f, 0.85f});

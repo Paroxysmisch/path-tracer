@@ -104,7 +104,7 @@ namespace pathtracer {
                         float t = curand_uniform(state);
 
                         if (object.mat_t == LIGHT) {
-                            multiplier &= object.mat_d.light.color * 16.f;
+                            multiplier &= object.mat_d.light.color * 8.f;
                             break;
                         }
 
