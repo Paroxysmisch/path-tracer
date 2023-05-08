@@ -1,3 +1,4 @@
+#include "brdf.cuh"
 #include "denoise.cuh"
 #include "render.cuh"
 #include "util.cuh"
@@ -94,6 +95,7 @@ namespace pathtracer {
                             float* texture = world.textures[object.shape_d.triangle.texture_idx];
                             int w = static_cast<int>(fmod(interpolated_texture_coordinate.x - epsilon, 1.f) * world.texture_datas[object.shape_d.triangle.texture_idx].width);
                             int h = static_cast<int>(fmod(interpolated_texture_coordinate.y - epsilon, 1.f) * world.texture_datas[object.shape_d.triangle.texture_idx].height);
+                            h = world.texture_datas[object.shape_d.triangle.texture_idx].height - h;
                             int offset = h * world.texture_datas[object.shape_d.triangle.texture_idx].width * 4 + w * 4;
                             vector diffuse_color = {texture[offset + 0], texture[offset + 1], texture[offset + 2]};
                             material_copy.color = diffuse_color;
@@ -118,6 +120,12 @@ namespace pathtracer {
                         if (object.shape_t == TRIANGLE) {
                             tangent = object.shape_d.triangle.tan1;
                             bitangent = object.shape_d.triangle.tan2;
+                            vec3 invalid_tangent = {0.f, 0.f, 0.f};
+                            if (!f_equal(tangent * bitangent, 0.f)) {
+                                // tangent = object.shape_d.triangle.p2 - object.shape_d.triangle.p1;
+                                tangent = {1.f, 0.f, 0.f};
+                                bitangent = tangent ^ object.shape_d.triangle.n1;
+                            }
                         } else {
                             tangent = object.shape_d.sphere.world_tangent_at(comp.surface_point);
                             bitangent = (tangent ^ comp.surface_normal).normalize();
@@ -179,7 +187,7 @@ namespace pathtracer {
 
                 if (num_samples_taken == -1) {
                     color /= num_samples;
-                } else {
+                } else if (num_samples_taken != 0) {
                     color /= num_samples_taken;
                 }
                     

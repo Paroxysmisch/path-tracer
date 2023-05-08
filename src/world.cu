@@ -6,6 +6,7 @@
 #include "world.cuh"
 #include "bvh.cuh"
 #include "OBJ_Loader.h"
+#include <iostream>
 
 namespace pathtracer {
 
@@ -205,7 +206,17 @@ namespace pathtracer {
                         vec3 t2 = {tex2.X, tex2.Y, 0.f};
                         vec3 t3 = {tex3.X, tex3.Y, 0.f};
 
+                        // vec3 empty_texture_coordinate = {0.f, 0.f, 0.f};
+                        // if (t1 == empty_texture_coordinate && t2 == empty_texture_coordinate && t3 == empty_texture_coordinate) {
+                        //     // t1 = v1;
+                        //     t2 = {1.f, 0.f, 0.f};
+                        //     t3 = {1.f, 1.f, 0.f};
+                        // }
+
                         objects[current_object].shape_t = TRIANGLE;
+                        if (curMesh.MeshName == "") {
+                            texture_idx = -1;
+                        }
                         objects[current_object].shape_d.triangle = triangle(v1, v2, v3, n1, n2, n3, t1, t2, t3, texture_idx);
                         // objects[current_object].shape_d.triangle.normal = average_normal;
                         objects[current_object].mat_t = MICROFACET;
@@ -215,10 +226,18 @@ namespace pathtracer {
                             curMesh.MeshMaterial.Kd.Z
                         };
                         // if (curMesh.MeshMaterial.name == "Gold Metal" || curMesh.MeshMaterial.name == "Gold Metall") color = {0.95f, 0.95f, 0.95f};
+                        float transmissiveness = 0.f;
+                        float roughness = 0.05f;
                         if (curMesh.MeshName == "solar_panels" || curMesh.MeshName == "instruments") {
                             color = {0.62f, 0.46f, 0.063f};
-                        } else color = {1.f, 0.99f, 1.f};
-                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, 0.3f, 0.f, 4.f, 0.04f, 0.f, 0.f, -0.3f};
+                        } else if (curMesh.MeshName == "") {
+                            color = {0.93f, 0.93f, 0.93f};
+                            transmissiveness = 1.f;
+                            roughness = 0.01f;
+                        }
+                        else color = {1.f, 0.99f, 1.f};
+                        // std::cout << curMesh.MeshName << std::endl;
+                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, roughness, 0.f, 1.2f, 0.04f, 0.f, 0.f, -0.3f, 0.f, 0.5f};
                         ++current_object;
                     }
                 }
