@@ -292,16 +292,16 @@ int main() {
      // }, {"HDU_lowRez_part1.obj"}, {pathtracer::mat4::get_rotation_y(-pathtracer::pi / 3.f) * pathtracer::mat4::get_rotation_z(pathtracer::pi / 4.f) * pathtracer::mat4::get_rotation_x(pathtracer::pi) * pathtracer::mat4::get_scaling(0.8f, 0.8f, 0.8f)}, {{"F16s.exr", 1024, 1024}}, "env.exr", blocks, threads);
 
      pathtracer::world world({
-          &obj0
-          }, {"sponza.obj"}, {pathtracer::mat4::get_scaling(0.0538f, 0.0538f, 0.0538f)}, {{"", 1024, 1024}}, "sky.exr", blocks, threads);
+          // &obj0
+          }, {"sponza.obj"}, {pathtracer::mat4::get_scaling(0.0538f, 0.0538f, 0.0538f)}, {{"", 1024, 1024}}, "env.exr", blocks, threads);
 
 
-     std::string filename1 = "sponza";
+     std::string filename1 = "sponza_test";
      // std::string filename2 = "2_128_on_16";
 
      auto start = std::chrono::high_resolution_clock::now();
 
-     pathtracer::render(camera, world, filename1, 8, false, 0.05f);
+     pathtracer::render(camera, world, filename1, 64, false, 0.05f);
      // pathtracer::render(camera, world, filename2, 128, true, 0.15f);
 
      auto stop = std::chrono::high_resolution_clock::now();

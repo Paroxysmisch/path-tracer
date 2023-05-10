@@ -227,7 +227,7 @@ namespace pathtracer {
                         };
                         // if (curMesh.MeshMaterial.name == "Gold Metal" || curMesh.MeshMaterial.name == "Gold Metall") color = {0.95f, 0.95f, 0.95f};
                         float transmissiveness = 0.f;
-                        float roughness = 0.05f;
+                        float roughness = 0.1f;
                         if (curMesh.MeshName == "solar_panels" || curMesh.MeshName == "instruments") {
                             color = {0.62f, 0.46f, 0.063f};
                         } else if (curMesh.MeshName == "") {
@@ -237,7 +237,7 @@ namespace pathtracer {
                         }
                         else color = {1.f, 0.99f, 1.f};
                         // std::cout << curMesh.MeshName << std::endl;
-                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, roughness, 0.f, 1.2f, 0.04f, 0.f, 0.f, -0.3f, 0.f, 0.5f};
+                        objects[current_object].mat_d.microfacet = microfacet{color, {0.f, 0.f, 0.f}, 1.f, roughness, 1.f, 1.2f, 0.04f, 0.f, 0.f, -0.3f, 0.f, 0.6f};
                         ++current_object;
                     }
                 }

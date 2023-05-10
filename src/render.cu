@@ -158,6 +158,10 @@ namespace pathtracer {
                         }
                     }
 
+
+                    refraction_idx_buffer[0] = 1.f;
+                    refraction_idx_buffr_ptr = 0;
+
                     // Radiance clamping
                     float clamp_value = 16.f;
                     multiplier.x = minf(multiplier.x, clamp_value);
